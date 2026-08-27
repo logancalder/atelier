@@ -15,6 +15,7 @@ export function WorkspaceFrame({ children }: { children: ReactNode }) {
   return (
     <div className="app-shell">
       <aside className="app-sidebar">
+        <VantaBackground variant="rings" />
         <Link href="/" className="brand-block" aria-label="Atelier welcome page">
           <div className="brand-mark" aria-hidden="true">A</div>
           <div>
@@ -26,7 +27,6 @@ export function WorkspaceFrame({ children }: { children: ReactNode }) {
         <ProfileNavItem />
       </aside>
       <div className="app-content">
-        <VantaBackground variant="rings" />
         <div className="workspace-route">{children}</div>
       </div>
     </div>

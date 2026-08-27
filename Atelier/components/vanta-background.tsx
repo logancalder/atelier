@@ -39,8 +39,8 @@ export function VantaBackground({ variant, className = "" }: { variant: "rings" 
               mouseControls: false,
               touchControls: false,
               gyroControls: false,
-              backgroundColor: 0xf7f6f2,
-              color: 0x7d8d7d,
+              backgroundColor: 0x252824,
+              color: 0x1d201c,
               scale: 1.25,
               scaleMobile: 1,
             }
