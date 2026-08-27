@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prova</title>
+  <meta name="description" content="Prova — Track your LeetCode problem solving progress by category, difficulty, and more." />
+  <link rel="icon" type="image/png" href="site_logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=block" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- Full-Page Skeleton Loader Overlay — Pixel-Perfect Layout Match -->
+<div class="fullpage-skeleton-overlay" id="fullpage-skeleton">
+  <div class="fp-skel-header">
+    <div class="fp-skel-box" style="width:150px;height:34px"></div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <div class="fp-skel-box" style="width:85px;height:34px"></div>
+      <div class="fp-skel-box" style="width:115px;height:34px"></div>
+      <div class="fp-skel-box" style="width:115px;height:34px"></div>
+      <div class="fp-skel-box" style="width:125px;height:34px"></div>
+      <div class="fp-skel-avatar"></div>
+    </div>
+  </div>
+
+  <div class="fp-skel-container">
+    <div class="fp-skel-stats-bar">
+      <div class="fp-skel-chip"></div>
+      <div class="fp-skel-chip"></div>
+      <div class="fp-skel-chip"></div>
+      <div class="fp-skel-chip"></div>
+      <div class="fp-skel-chip"></div>
+      <div class="fp-skel-chip"></div>
+      <div class="fp-skel-chip"></div>
+    </div>
+
+    <div class="fp-skel-main-layout">
+      <div class="fp-skel-sidebar"></div>
+      <div class="fp-skel-content">
+        <div class="fp-skel-toolbar"></div>
+        <div class="fp-skel-table"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════════════════════════════╗ -->
+<!-- ║                    HEADER                        ║ -->
+<!-- ╚══════════════════════════════════════════════════╝ -->
+<header class="app-header">
+  <div class="logo">
+    <img src="site_logo.png" alt="Prova" class="logo-img" />
+    <div class="welcome-banner" id="welcome-banner">
+      <span id="welcome-prefix"></span>
+      <span class="gold-shimmer" id="header-user-name"></span>
+    </div>
+  </div>
+
+  <div class="header-actions">
+    <input type="file" id="file-input" accept=".json,.csv" style="display:none" />
+    <button id="btn-import" class="btn btn-secondary" title="Import JSON / CSV">
+      <span class="btn-icon-wrap" id="icon-import"></span> Import
+    </button>
+    <button id="btn-export-json" class="btn btn-secondary" title="Export data.json">
+      <span class="btn-icon-wrap" id="icon-export-json"></span> Export JSON
+    </button>
+    <button id="btn-export" class="btn btn-secondary" title="Export CSV">
+      <span class="btn-icon-wrap" id="icon-export"></span> Export CSV
+    </button>
+    <a href="problems.html" class="btn btn-secondary" title="Solve problems in Practice Arena">
+      Practice Arena
+    </a>
+    <button id="btn-add" class="btn btn-primary" title="Add problem (N)">
+      <span class="btn-icon-wrap" id="icon-add"></span> Add Problem
+    </button>
+
+    <div class="profile-menu-wrap">
+      <button id="btn-profile" class="profile-header-btn" title="User Profile">
+        <div class="user-avatar-badge" id="header-avatar-badge">🥷</div>
+        <span class="profile-btn-name" id="profile-btn-name">Alex</span>
+      </button>
+      <div class="profile-dropdown-menu" id="profile-dropdown-menu">
+        <a href="profile.html" id="menu-view-profile" class="dropdown-item">
+          <span class="dropdown-icon" id="menu-icon-user"></span> View Profile Page
+        </a>
+        <button id="menu-edit-profile" class="dropdown-item">
+          <span class="dropdown-icon" id="menu-icon-settings"></span> Edit Profile / Avatar
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ╔══════════════════════════════════════════════════╗ -->
+<!-- ║                   STATS BAR                      ║ -->
+<!-- ╚══════════════════════════════════════════════════╝ -->
+<div class="stats-bar">
+  <div class="stat-chip">
+    <span>Total</span>
+    <span class="stat-value" id="stat-total">0</span>
+  </div>
+  <div class="stat-chip green">
+    <span>Solved</span>
+    <span class="stat-value" id="stat-solved">0</span>
+  </div>
+  <div class="stat-chip teal">
+    <span>1st Try</span>
+    <span class="stat-value" id="stat-first-try">0</span>
+  </div>
+  <div class="stat-chip teal" style="--accent:#4a9198">
+    <span>Hole in 1</span>
+    <span class="stat-value" id="stat-hole-in-one">0</span>
+  </div>
+  <div class="stat-chip sage">
+    <span>Competent</span>
+    <span class="stat-value" id="stat-competent">0</span>
+  </div>
+  <div class="stat-chip green">
+    <span>Easy</span>
+    <span class="stat-value" id="stat-easy">0</span>
+  </div>
+  <div class="stat-chip" style="--accent:#FAA33B">
+    <span>Medium</span>
+    <span class="stat-value" id="stat-medium" style="color:#FAA33B">0</span>
+  </div>
+  <div class="stat-chip red">
+    <span>Hard</span>
+    <span class="stat-value" id="stat-hard">0</span>
+  </div>
+
+  <div class="progress-section">
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <span class="progress-label" id="progress-text"><strong>0%</strong> complete</span>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════════════════════════════╗ -->
+<!-- ║              MAIN BODY (Sidebar + Content)        ║ -->
+<!-- ╚══════════════════════════════════════════════════╝ -->
+<div class="app-body">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section-label">Overview</div>
+
+    <div class="nav-item active" data-nav="all" id="nav-all">
+      <span>All Problems</span>
+      <span class="nav-count">0</span>
+    </div>
+    <div class="nav-item" data-nav="recent">
+      <span>Recently Solved</span>
+      <span class="nav-count">0</span>
+    </div>
+
+    <div class="sidebar-section-label">Status</div>
+
+    <div class="nav-item" data-nav="solved">
+      <span>Solved</span>
+      <span class="nav-count">0</span>
+    </div>
+    <div class="nav-item" data-nav="unsolved">
+      <span>Unsolved</span>
+      <span class="nav-count">0</span>
+    </div>
+    <div class="nav-item" data-nav="first-try">
+      <span>Got First Try</span>
+      <span class="nav-count">0</span>
+    </div>
+    <div class="nav-item" data-nav="hole-in-one">
+      <span>Hole in 1 ⛳</span>
+      <span class="nav-count">0</span>
+    </div>
+    <div class="nav-item" data-nav="not-first-try">
+      <span>Needed Practice</span>
+      <span class="nav-count">0</span>
+    </div>
+    <div class="nav-item" data-nav="competent">
+      <span>Competent</span>
+      <span class="nav-count">0</span>
+    </div>
+
+    <div class="sidebar-section-label">Categories</div>
+    <div id="category-nav"></div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="search-icon" id="search-icon-wrap"></span>
+        <input
+          type="text"
+          id="search-input"
+          class="search-input"
+          placeholder="Search problems, categories, notes…"
+          autocomplete="off"
+        />
+      </div>
+
+      <!-- Difficulty Pills -->
+      <div class="filter-pills">
+        <span style="font-size:11.5px;color:var(--muted);margin-right:2px">Diff:</span>
+        <div class="filter-pill active" data-diff="all">All</div>
+        <div class="filter-pill green-pill" data-diff="easy">Easy</div>
+        <div class="filter-pill" data-diff="medium" style="--pill-color:#FAA33B">Medium</div>
+        <div class="filter-pill red-pill" data-diff="hard">Hard</div>
+      </div>
+
+      <!-- First Try Pills -->
+      <div class="filter-pills" style="margin-left:4px">
+        <span style="font-size:11.5px;color:var(--muted);margin-right:2px">1st Try:</span>
+        <div class="filter-pill green-pill" data-firsttry="Y"><span class="pill-icon" data-icon="check"></span> Yes</div>
+        <div class="filter-pill red-pill" data-firsttry="N"><span class="pill-icon" data-icon="cross"></span> No</div>
+      </div>
+
+      <!-- Hole in 1 Pills -->
+      <div class="filter-pills" style="margin-left:4px">
+        <span style="font-size:11.5px;color:var(--muted);margin-right:2px">Hole in 1:</span>
+        <div class="filter-pill green-pill" data-holeinone="Y"><span class="pill-icon" data-icon="check"></span> Yes</div>
+        <div class="filter-pill red-pill" data-holeinone="N"><span class="pill-icon" data-icon="cross"></span> No</div>
+      </div>
+
+      <div class="toolbar-right">
+        <span class="sort-label" id="result-count" style="color:var(--muted-light);font-size:12px"></span>
+
+        <!-- View toggle -->
+        <div class="view-toggle">
+          <button class="view-btn active" data-view="table" title="Table view" id="btn-view-table"></button>
+          <button class="view-btn" data-view="cards" title="Card view" id="btn-view-cards"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLE VIEW -->
+    <div id="table-wrap" class="table-wrap">
+      <table class="problems-table">
+        <thead>
+          <tr>
+            <th data-sort="problemNo">#<span class="sort-arrow">↕</span></th>
+            <th data-sort="title">Problem<span class="sort-arrow">↕</span></th>
+            <th data-sort="difficulty">Difficulty<span class="sort-arrow">↕</span></th>
+            <th data-sort="category">Category<span class="sort-arrow">↕</span></th>
+            <th data-sort="dateSolved">Date Solved<span class="sort-arrow">↕</span></th>
+            <th data-sort="solvedFirstTime">1st Try<span class="sort-arrow">↕</span></th>
+            <th data-sort="holeInOne" title="First Submission Accepted">Hole in 1<span class="sort-arrow">↕</span></th>
+            <th data-sort="solvedSub20">Sub 20<span class="sort-arrow">↕</span></th>
+            <th id="th-star"></th>
+            <th>Notes</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="problems-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- CARDS VIEW -->
+    <div id="cards-grid" class="cards-grid" style="display:none"></div>
+
+  </main>
+</div>
+
+<!-- ╔══════════════════════════════════════════════════╗ -->
+<!-- ║               ADD / EDIT MODAL                   ║ -->
+<!-- ╚══════════════════════════════════════════════════╝ -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Add New Problem</div>
+      <button class="modal-close" id="modal-close">✕</button>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-field">
+        <label class="form-label" for="f-problemNo">Problem #</label>
+        <input type="number" id="f-problemNo" class="form-input" placeholder="e.g. 200" />
+      </div>
+      <div class="form-field">
+        <label class="form-label" for="f-difficulty">Difficulty</label>
+        <select id="f-difficulty" class="form-select">
+          <option value="">Select…</option>
+          <option value="Easy">Easy</option>
+          <option value="Medium">Medium</option>
+          <option value="Hard">Hard</option>
+        </select>
+      </div>
+      <div class="form-field full">
+        <label class="form-label" for="f-title">Problem Title</label>
+        <input type="text" id="f-title" class="form-input" placeholder="e.g. Number of Islands" />
+      </div>
+      <div class="form-field full">
+        <label class="form-label" for="f-url">LeetCode URL</label>
+        <input type="url" id="f-url" class="form-input" placeholder="https://leetcode.com/problems/… (or paste URL to infer title)" />
+      </div>
+      <div class="form-field full">
+        <label class="form-label" for="f-category">Category</label>
+        <select id="f-category" class="form-select">
+          <option value="">Select category…</option>
+          <option value="Arrays">Arrays</option>
+          <option value="Backtracking">Backtracking</option>
+          <option value="BFS">BFS</option>
+          <option value="Binary Search">Binary Search</option>
+          <option value="Bit Manipulation">Bit Manipulation</option>
+          <option value="Bucket Sort">Bucket Sort</option>
+          <option value="DFS">DFS</option>
+          <option value="Design">Design</option>
+          <option value="Dynamic Programming">Dynamic Programming</option>
+          <option value="Fast_Slow Pointers">Fast/Slow Pointers</option>
+          <option value="Graph">Graph</option>
+          <option value="Greedy">Greedy</option>
+          <option value="Hash Table">Hash Table</option>
+          <option value="Heap">Heap</option>
+          <option value="In-Place Reversal of LinkedList">In-Place Reversal of LinkedList</option>
+          <option value="Intervals">Intervals</option>
+          <option value="Linked List">Linked List</option>
+          <option value="Sliding Window">Sliding Window</option>
+          <option value="Sorting">Sorting</option>
+          <option value="Stack">Stack</option>
+          <option value="Topological Sort">Topological Sort</option>
+          <option value="Trie">Trie</option>
+          <option value="Two Pointers ">Two Pointers</option>
+          <option value="Union Find">Union Find</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label" for="f-dateSolved">Date Solved</label>
+        <input type="date" id="f-dateSolved" class="form-input" />
+      </div>
+      <div class="form-field">
+        <label class="form-label">Solved First Try?</label>
+        <div class="toggle-group">
+          <button class="toggle-btn" data-toggle="f-firstTry" data-value="Y"><span class="pill-icon" data-icon="check"></span> Yes</button>
+          <button class="toggle-btn" data-toggle="f-firstTry" data-value="N"><span class="pill-icon" data-icon="cross"></span> No</button>
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-label" title="First Submission Accepted">Hole in 1 (1st Sub AC)?</label>
+        <div class="toggle-group">
+          <button class="toggle-btn" data-toggle="f-holeInOne" data-value="Y"><span class="pill-icon" data-icon="check"></span> Yes</button>
+          <button class="toggle-btn" data-toggle="f-holeInOne" data-value="N"><span class="pill-icon" data-icon="cross"></span> No</button>
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Solved Sub 20m?</label>
+        <div class="toggle-group">
+          <button class="toggle-btn" data-toggle="f-sub20" data-value="Y"><span class="pill-icon" data-icon="check"></span> Yes</button>
+          <button class="toggle-btn" data-toggle="f-sub20" data-value="N"><span class="pill-icon" data-icon="cross"></span> No</button>
+        </div>
+      </div>
+      <div class="form-field full">
+        <label class="form-label">Competent?</label>
+        <div class="toggle-group" style="max-width:300px">
+          <button class="toggle-btn" data-toggle="f-competent" data-value="Y"><span class="pill-icon" data-icon="star-fill" style="color:#FAA33B"></span> Yes</button>
+          <button class="toggle-btn" data-toggle="f-competent" data-value="N">Not Yet</button>
+        </div>
+      </div>
+      <div class="form-field full">
+        <label class="form-label" for="f-notes">Notes</label>
+        <textarea id="f-notes" class="form-textarea" placeholder="Any notes to help you recall the approach…"></textarea>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button id="btn-cancel" class="btn btn-secondary">Cancel</button>
+      <button id="btn-save" class="btn btn-primary">Save Problem</button>
+    </div>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════════════════════════════╗ -->
+<!-- ║             USER PROFILE MODAL                   ║ -->
+<!-- ╚══════════════════════════════════════════════════╝ -->
+<div class="modal-overlay" id="profile-modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Edit User Profile</div>
+      <button class="modal-close" id="profile-modal-close"></button>
+    </div>
+
+    <div class="profile-form-wrap">
+      <div class="form-field full">
+        <label class="form-label" for="p-username">Username / Display Name</label>
+        <input type="text" id="p-username" class="form-input" placeholder="Enter your name…" maxlength="25" />
+      </div>
+
+      <div class="form-field full" style="margin-top:12px">
+        <label class="form-label">Select Profile Picture / Avatar</label>
+        <div class="avatar-grid" id="avatar-grid">
+          <button class="avatar-option" data-avatar="ninja" title="Ninja">🥷</button>
+          <button class="avatar-option" data-avatar="wizard" title="Wizard">🧙‍♂️</button>
+          <button class="avatar-option" data-avatar="crown" title="Crown">👑</button>
+          <button class="avatar-option" data-avatar="rocket" title="Rocket">🚀</button>
+          <button class="avatar-option" data-avatar="fire" title="Fire">🔥</button>
+          <button class="avatar-option" data-avatar="diamond" title="Diamond">💎</button>
+          <button class="avatar-option" data-avatar="star" title="Star">⭐</button>
+          <button class="avatar-option" data-avatar="cyber" title="Cyber">🤖</button>
+        </div>
+      </div>
+
+      <div class="form-field full" style="margin-top:12px">
+        <label class="form-label" for="p-avatar-url">Or Custom Profile Picture URL</label>
+        <input type="url" id="p-avatar-url" class="form-input" placeholder="https://example.com/my-avatar.png" />
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button id="btn-profile-cancel" class="btn btn-secondary">Cancel</button>
+      <button id="btn-profile-save" class="btn btn-primary">Save Profile</button>
+    </div>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════════════════════════════╗ -->
+<!-- ║             USER PROFILE PAGE VIEW MODAL         ║ -->
+<!-- ╚══════════════════════════════════════════════════╝ -->
+<div class="modal-overlay" id="profile-view-modal-overlay">
+  <div class="modal profile-page-modal">
+    <div class="modal-header">
+      <div class="modal-title">User Profile & Stats</div>
+      <button class="modal-close" id="profile-view-close"></button>
+    </div>
+
+    <!-- Profile Hero Card -->
+    <div class="profile-hero">
+      <div class="profile-avatar-large" id="pv-avatar-badge">🥷</div>
+      <div class="profile-hero-info">
+        <h2 class="profile-hero-name" id="pv-username">Alex</h2>
+        <div class="profile-hero-subtitle">LeetCode Track Record</div>
+      </div>
+    </div>
+
+    <!-- Minimal Core Metrics Grid -->
+    <div class="profile-metrics-grid">
+      <div class="profile-metric-card">
+        <span class="pm-label">Total Solved</span>
+        <span class="pm-value green-text" id="pv-total-solved">0</span>
+      </div>
+      <div class="profile-metric-card">
+        <span class="pm-label">1st Try Rate</span>
+        <span class="pm-value teal-text" id="pv-first-try-rate">0%</span>
+      </div>
+      <div class="profile-metric-card">
+        <span class="pm-label">Hard Solved</span>
+        <span class="pm-value red-text" id="pv-hard-solved">0</span>
+      </div>
+    </div>
+
+    <!-- Activity Heatmap Graph (GitHub / GitLab style) -->
+    <div class="profile-section">
+      <div class="profile-section-title">
+        <span>Activity Graph (Past 52 Weeks)</span>
+        <span class="profile-activity-count" id="pv-active-days">0 active days</span>
+      </div>
+      <div class="heatmap-container">
+        <div class="heatmap-grid" id="heatmap-grid"></div>
+        <div class="heatmap-footer">
+          <span style="color:var(--muted);font-size:11px">Less</span>
+          <div class="heatmap-legend">
+            <div class="heatmap-square level-0" title="0 solved"></div>
+            <div class="heatmap-square level-1" title="1 solved"></div>
+            <div class="heatmap-square level-2" title="2 solved"></div>
+            <div class="heatmap-square level-3" title="3 solved"></div>
+            <div class="heatmap-square level-4" title="4+ solved"></div>
+          </div>
+          <span style="color:var(--muted);font-size:11px">More</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hardest Problems Solved -->
+    <div class="profile-section">
+      <div class="profile-section-title">Hardest Problems Solved</div>
+      <div class="hardest-problems-list" id="pv-hardest-list"></div>
+    </div>
+
+    <div class="modal-footer">
+      <button id="btn-profile-view-edit" class="btn btn-primary">Edit Profile</button>
+      <button id="btn-profile-view-done" class="btn btn-secondary">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Celebratory Canvas Confetti Container -->
+<canvas id="confetti-canvas" style="position:fixed;inset:0;pointer-events:none;z-index:3000;width:100vw;height:100vh"></canvas>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,2 @@
+#extension-account { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; padding:10px 0; border-top:1px solid var(--atelier-line,#35342f); border-bottom:1px solid var(--atelier-line,#35342f); color:var(--atelier-mute,#918f88); font-size:11px; }
+#extension-account button { width:auto; padding:5px 8px; font-size:10px; }

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Profile — Prova</title>
+  <meta name="description" content="User Profile, Activity Heatmap & Achievements on Prova LeetCode Tracker." />
+  <link rel="icon" type="image/png" href="site_logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=block" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="profile-page-body">
+
+<!-- Full-Page Skeleton Loader Overlay — Pixel-Perfect Profile Match -->
+<div class="fullpage-skeleton-overlay" id="fullpage-skeleton">
+  <div class="fp-skel-header">
+    <div class="fp-skel-box" style="width:150px;height:34px"></div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <div class="fp-skel-box" style="width:130px;height:34px"></div>
+      <div class="fp-skel-avatar"></div>
+    </div>
+  </div>
+
+  <div class="fp-skel-profile-container">
+    <div class="fp-skel-hero"></div>
+    <div class="fp-skel-metrics-grid">
+      <div class="fp-skel-metric-card"></div>
+      <div class="fp-skel-metric-card"></div>
+      <div class="fp-skel-metric-card"></div>
+      <div class="fp-skel-metric-card"></div>
+    </div>
+    <div class="fp-skel-section-card" style="height:220px"></div>
+    <div class="fp-skel-section-card" style="height:190px"></div>
+    <div class="fp-skel-section-card" style="height:240px"></div>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════════════════════════════╗ -->
+<!-- ║                    HEADER                        ║ -->
+<!-- ╚══════════════════════════════════════════════════╝ -->
+<header class="app-header">
+  <div class="logo">
+    <a href="index.html" style="display:flex;align-items:center;gap:10px">
+      <img src="site_logo.png" alt="Prova" class="logo-img" />
+    </a>
+    <div class="welcome-banner" id="welcome-banner">
+      <span id="welcome-prefix"></span>
+      <span class="gold-shimmer" id="header-user-name"></span>
+    </div>
+  </div>
+
+  <div class="header-actions">
+    <a href="index.html" class="btn btn-secondary" title="Return to Tracker">
+      <span class="btn-icon-wrap" id="icon-back"></span> Back to Tracker
+    </a>
+
+    <div class="profile-menu-wrap">
+      <button id="btn-profile" class="profile-header-btn" title="User Profile">
+        <div class="user-avatar-badge" id="header-avatar-badge">🥷</div>
+        <span class="profile-btn-name" id="profile-btn-name">Alex</span>
+      </button>
+      <div class="profile-dropdown-menu" id="profile-dropdown-menu">
+        <a href="profile.html" class="dropdown-item">
+          <span class="dropdown-icon" id="menu-icon-user"></span> View Profile Page
+        </a>
+        <button id="menu-edit-profile" class="dropdown-item">
+          <span class="dropdown-icon" id="menu-icon-settings"></span> Edit Profile / Avatar
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ╔══════════════════════════════════════════════════╗ -->
+<!-- ║                MAIN PROFILE PAGE                 ║ -->
+<!-- ╚══════════════════════════════════════════════════╝ -->
+<main class="profile-page-container">
+
+  <!-- Profile Hero Header Card -->
+  <div class="profile-hero-card">
+    <div class="profile-hero-top">
+      <div class="profile-avatar-xl" id="pv-avatar-badge">🥷</div>
+      <div class="profile-hero-details">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <div>
+            <h1 class="profile-hero-title" id="pv-username">Alex</h1>
+            <div class="profile-hero-role">LeetCode Track Record</div>
+          </div>
+          <button id="btn-edit-profile-hero" class="btn btn-secondary" style="padding:4px 12px;font-size:12px">Edit Profile</button>
+        </div>
+
+        <!-- Highlighted Top 3 Badges -->
+        <div class="top-badges-wrap">
+          <span class="top-badges-label">Top Achievements:</span>
+          <div class="top-badges-list" id="pv-top-badges"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Minimal Core Metrics Grid -->
+  <div class="profile-metrics-row">
+    <div class="p-stat-card">
+      <span class="p-stat-label">Total Solved</span>
+      <span class="p-stat-val green-text" id="pv-total-solved">0</span>
+    </div>
+    <div class="p-stat-card">
+      <span class="p-stat-label">1st Try Rate</span>
+      <span class="p-stat-val teal-text" id="pv-first-try-rate">0%</span>
+    </div>
+    <div class="p-stat-card">
+      <span class="p-stat-label">Sub 20m Solves</span>
+      <span class="p-stat-val gold-text" id="pv-sub20-count">0</span>
+    </div>
+    <div class="p-stat-card">
+      <span class="p-stat-label">Hard Solved</span>
+      <span class="p-stat-val red-text" id="pv-hard-solved">0</span>
+    </div>
+  </div>
+
+  <!-- FULL WIDTH ACTIVITY GRAPH SECTION -->
+  <div class="p-section-card">
+    <div class="heatmap-header-row">
+      <h3 class="heatmap-title" id="heatmap-contrib-title">0 puzzles solved in 2026</h3>
+      <select id="heatmap-year-select" class="select-filter" style="padding:4px 8px;font-size:12px"></select>
+    </div>
+
+    <div class="heatmap-main-box full-width-heatmap-box" style="margin-top:14px">
+      <div class="heatmap-labels-day">
+        <span class="day-lbl"></span>
+        <span class="day-lbl">Mon</span>
+        <span class="day-lbl"></span>
+        <span class="day-lbl">Wed</span>
+        <span class="day-lbl"></span>
+        <span class="day-lbl">Fri</span>
+        <span class="day-lbl"></span>
+      </div>
+      <div class="heatmap-grid-scroll" style="width:100%">
+        <div class="heatmap-months-row" id="heatmap-months-row"></div>
+        <div class="heatmap-grid-matrix" id="heatmap-grid-matrix"></div>
+      </div>
+    </div>
+
+    <div class="heatmap-footer-row" style="margin-top:12px">
+      <span style="color:var(--muted);font-size:11.5px">Daily activity log</span>
+      <div class="heatmap-legend">
+        <span style="color:var(--muted);font-size:11px">Less</span>
+        <div class="heatmap-square level-0" title="0 solved"></div>
+        <div class="heatmap-square level-1" title="1 solved"></div>
+        <div class="heatmap-square level-2" title="2 solved"></div>
+        <div class="heatmap-square level-3" title="3 solved"></div>
+        <div class="heatmap-square level-4" title="4+ solved"></div>
+        <span style="color:var(--muted);font-size:11px">More</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECENTLY SOLVED SECTION -->
+  <div class="p-section-card">
+    <div class="p-section-header">
+      <h2 class="p-section-title">Recently Solved Puzzles</h2>
+      <span class="btn-icon-wrap" id="icon-recent-sparkles"></span>
+    </div>
+    <div class="recent-act-list-full" id="recent-act-list">
+      <!-- Dynamically rendered recent solved items -->
+    </div>
+  </div>
+
+  <!-- Achievements & Badges Showcase -->
+  <div class="p-section-card">
+    <div class="p-section-header">
+      <h2 class="p-section-title">Achievements & Badges</h2>
+      <span class="p-activity-badge" id="pv-badge-count">0 / 10 Unlocked</span>
+    </div>
+    <div class="achievements-grid" id="achievements-grid"></div>
+  </div>
+
+  <!-- Hardest Problems Solved -->
+  <div class="p-section-card">
+    <div class="p-section-header">
+      <h2 class="p-section-title">Hardest Problems Solved</h2>
+    </div>
+    <div class="hardest-problems-list" id="pv-hardest-list"></div>
+  </div>
+
+</main>
+
+<!-- Edit Profile Modal -->
+<div class="modal-overlay" id="profile-modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Edit User Profile</div>
+      <button class="modal-close" id="profile-modal-close"></button>
+    </div>
+
+    <div class="profile-form-wrap">
+      <div class="form-field full">
+        <label class="form-label" for="p-username">Username / Display Name</label>
+        <input type="text" id="p-username" class="form-input" placeholder="Enter your name…" maxlength="25" />
+      </div>
+
+      <div class="form-field full" style="margin-top:12px">
+        <label class="form-label">Select Profile Picture / Avatar</label>
+        <div class="avatar-grid" id="avatar-grid">
+          <button class="avatar-option" data-avatar="ninja" title="Ninja">🥷</button>
+          <button class="avatar-option" data-avatar="wizard" title="Wizard">🧙‍♂️</button>
+          <button class="avatar-option" data-avatar="crown" title="Crown">👑</button>
+          <button class="avatar-option" data-avatar="rocket" title="Rocket">🚀</button>
+          <button class="avatar-option" data-avatar="fire" title="Fire">🔥</button>
+          <button class="avatar-option" data-avatar="diamond" title="Diamond">💎</button>
+          <button class="avatar-option" data-avatar="star" title="Star">⭐</button>
+          <button class="avatar-option" data-avatar="cyber" title="Cyber">🤖</button>
+        </div>
+      </div>
+
+      <div class="form-field full" style="margin-top:12px">
+        <label class="form-label" for="p-avatar-url">Or Custom Profile Picture URL</label>
+        <input type="url" id="p-avatar-url" class="form-input" placeholder="https://example.com/my-avatar.png" />
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button id="btn-profile-cancel" class="btn btn-secondary">Cancel</button>
+      <button id="btn-profile-save" class="btn btn-primary">Save Profile</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script type="module" src="js/profile_page.js"></script>
+</body>
+</html>

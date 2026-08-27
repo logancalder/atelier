@@ -1,0 +1,135 @@
+#atelier-notes-handle,#solvenotes-panel,#solvenotes-panel *{box-sizing:border-box}
+#atelier-notes-handle{all:unset;box-sizing:border-box;position:fixed;z-index:2147483644;right:0;top:48%;display:grid;width:64px;height:70px;place-items:center;border:1px solid #d8d3c8;border-right:0;border-radius:12px 0 0 12px;color:#292b27;background:#fff;box-shadow:0 8px 28px rgba(18,18,16,.18);cursor:pointer;transition:transform .22s ease,background .2s ease}
+#atelier-notes-handle:hover{background:#f7f6f2;transform:translateX(-3px)}
+#atelier-notes-handle[data-open]{transform:translateX(-420px);background:#fff}
+#atelier-notes-handle .sn-launcher-logo{display:block;color:#292b27;font:600 31px/1 Iowan Old Style,Baskerville,Georgia,serif!important;letter-spacing:-.03em;text-transform:none}
+#solvenotes-panel{position:fixed!important;z-index:2147483645;top:12px!important;right:12px!important;bottom:12px!important;left:auto!important;width:min(430px,calc(100vw - 24px))!important;height:auto!important;min-height:0!important;overflow:hidden!important;border:1px solid #d8d3c8!important;border-radius:8px!important;color:#2f2e2a!important;background:#f7f6f2!important;box-shadow:0 24px 70px rgba(20,20,17,.3)!important;transform:translateX(calc(100% + 24px));opacity:0;visibility:hidden;font-size:15px!important;transition:transform .28s cubic-bezier(.22,.8,.3,1),opacity .2s ease,visibility 0s linear .28s}
+#solvenotes-panel[data-open]{transform:translateX(0);opacity:1;visibility:visible;transition-delay:0s}
+#solvenotes-panel .sn-editor{display:flex!important;width:100%!important;height:100%!important;min-height:0!important;margin:0!important;padding:22px 28px 24px!important;flex-direction:column}
+#solvenotes-panel .sn-drawer-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+#solvenotes-panel .sn-brand{color:#77746d!important;font-size:12px!important;font-weight:650!important;letter-spacing:.2em!important}
+#solvenotes-panel .sn-brand i{font-style:normal;color:#aaa69d}
+#solvenotes-panel .sn-drawer-top button{width:40px!important;height:40px!important;padding:0!important;border:1px solid #d8d3c8!important;border-radius:50%!important;color:#2f2e2a!important;background:transparent!important;font:300 26px/1 Georgia,serif!important}
+#solvenotes-panel header{display:block!important;min-height:0!important;margin:0 0 10px!important;padding:0 0 14px!important;border-bottom:1px solid #dedbd3!important}
+#solvenotes-panel .sn-eyebrow{color:#79766e!important;font-size:11px!important;letter-spacing:.2em!important}
+#solvenotes-panel h2{max-width:none!important;margin:7px 0 0!important;color:#2f2e2a!important;font-size:clamp(27px,3.6vh,35px)!important;line-height:1.04!important}
+#solvenotes-panel .sn-account-row{display:flex!important;visibility:visible!important;align-items:center!important;justify-content:flex-start!important;gap:12px!important;min-height:58px!important;margin:0 0 8px!important;padding:8px 0!important;opacity:1!important;color:#79766e!important;border-bottom:1px solid #dedbd3!important}
+#solvenotes-panel .sn-account-avatar{display:grid!important;visibility:visible!important;width:42px!important;height:42px!important;flex:none!important;place-items:center!important;border:1px solid #d8d3c8!important;border-radius:50%!important;opacity:1!important;color:#2f2e2a!important;background:#fff center/cover!important;font:21px/1 Iowan Old Style,Baskerville,Georgia,serif!important}
+#solvenotes-panel .sn-account-avatar.sn-has-photo{color:transparent!important}
+#solvenotes-panel .sn-account-copy{display:grid!important;visibility:visible!important;min-width:0!important;gap:2px!important;flex:1!important;opacity:1!important}
+#solvenotes-panel .sn-account-copy strong{display:block!important;overflow:hidden!important;color:#2f2e2a!important;font-size:14px!important;font-weight:650!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+#solvenotes-panel .sn-account-copy small{display:block!important;overflow:hidden!important;color:#79766e!important;font-size:12px!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+#solvenotes-panel button{color:#2f2e2a!important;background:rgba(255,255,255,.78)!important}
+#solvenotes-panel .sn-account-row>button,#solvenotes-panel .sn-header-actions button{min-width:92px!important;min-height:44px!important;padding:10px 14px!important;font-size:14px!important;white-space:nowrap!important}
+#solvenotes-panel .sn-header-actions{display:flex!important;justify-content:flex-end!important;gap:10px!important;margin:7px 0 9px!important}
+#solvenotes-panel .sn-header-actions [data-all]{min-width:142px!important}
+#solvenotes-panel .sn-sync-status{min-height:0!important;margin:0!important;color:#79766e!important;font-size:12px!important}
+#solvenotes-panel .sn-badges{gap:8px!important;margin:0 0 8px!important;padding:9px 0!important;border-top:1px solid #dedbd3!important;border-bottom:1px solid #dedbd3!important}
+#solvenotes-panel .sn-badges span{font-size:13px!important}
+#solvenotes-panel .sn-flags{grid-template-columns:1fr 1fr!important;gap:0!important;margin:0 0 10px!important}
+#solvenotes-panel .sn-flags label{min-width:0!important;padding:10px 8px 10px 0!important}
+#solvenotes-panel .sn-flags label+label{padding-left:12px!important;border-top:0!important;border-left:1px solid #dedbd3!important}
+#solvenotes-panel .sn-flags b{font-size:14px!important}
+#solvenotes-panel .sn-flags small{font-size:12px!important;line-height:1.3!important}
+#solvenotes-panel .sn-notes-label{margin-bottom:6px!important;font-size:11px!important}
+#solvenotes-panel textarea{min-height:105px!important;max-height:none!important;flex:1 1 150px!important;padding:13px!important;resize:none!important;font-size:15px!important}
+#solvenotes-panel footer{position:static!important;margin-top:9px!important;padding:0!important;background:#f7f6f2!important}
+#solvenotes-panel footer button{min-height:43px!important;padding:10px 15px!important;font-size:14px!important}
+@media(max-height:760px){#solvenotes-panel .sn-editor{padding:17px 24px 18px!important}#solvenotes-panel .sn-drawer-top{margin-bottom:10px}#solvenotes-panel h2{font-size:27px!important}#solvenotes-panel .sn-account-row{min-height:50px!important;padding:4px 0!important}#solvenotes-panel .sn-account-avatar{width:36px!important;height:36px!important}#solvenotes-panel .sn-header-actions button{min-height:38px!important}#solvenotes-panel .sn-flags label{padding-top:7px!important;padding-bottom:7px!important}}
+@media(max-width:520px){#atelier-notes-handle[data-open]{opacity:0;pointer-events:none;transform:translateX(0)}#solvenotes-panel{top:0!important;right:0!important;bottom:0!important;width:100vw!important;border-radius:0!important}#solvenotes-panel .sn-editor{padding:20px!important}}
+
+/* Drawer composition: keep controls prominent and independent of NeetCode styles. */
+#atelier-notes-handle{z-index:2147483646!important}
+#atelier-notes-handle[data-open]{transform:translateX(-438px)!important}
+#solvenotes-panel .sn-drawer-top{justify-content:flex-start!important;gap:10px!important}
+#solvenotes-panel .sn-brand{display:none!important}
+#solvenotes-panel .sn-drawer-top [data-close]{margin-left:auto!important}
+#solvenotes-panel .sn-drawer-top [data-sync],#solvenotes-panel .sn-drawer-top .sn-atelier-action{display:grid!important;width:50px!important;height:50px!important;min-width:50px!important;padding:0!important;place-items:center!important;border:0!important;border-radius:50%!important;color:#2f2e2a!important;background:#e9e6df!important;font-size:25px!important}
+#solvenotes-panel .sn-drawer-top .sn-atelier-action{width:62px!important;height:62px!important;min-width:62px!important;color:#f7f6f2!important;background:#292b27!important;font:600 34px/1 Iowan Old Style,Baskerville,Georgia,serif!important}
+#solvenotes-panel .sn-header-actions{display:none!important}
+#solvenotes-panel .sn-badges{display:grid!important;grid-template-columns:repeat(3,1fr)!important;align-items:center!important;text-align:center!important}
+#solvenotes-panel .sn-badges>span{display:block!important;padding:7px 4px!important}
+#solvenotes-panel .sn-badges [data-hole]{display:none!important}
+#solvenotes-panel .sn-submission-pill button{font-size:14px!important}
+#solvenotes-panel .sn-auth-panel{display:block;margin:0 0 10px;padding:13px 0 14px;border-bottom:1px solid #dedbd3}
+#solvenotes-panel .sn-auth-panel[hidden]{display:none!important}
+#solvenotes-panel .sn-auth-panel>p{margin:0 0 10px;color:#2f2e2a;font-size:13px;font-weight:650}
+#solvenotes-panel .sn-auth-providers{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#solvenotes-panel .sn-auth-providers button{display:flex!important;min-height:40px!important;align-items:center!important;justify-content:center!important;gap:8px!important;padding:8px 10px!important;border:1px solid #dedbd3!important;font-size:12px!important}
+#solvenotes-panel .sn-google{color:#4285f4;font-weight:800}.sn-github{color:#292b27;font-size:11px}
+#solvenotes-panel .sn-google,#solvenotes-panel .sn-github{display:grid;width:20px;height:20px;flex:none;place-items:center}
+#solvenotes-panel .sn-google svg,#solvenotes-panel .sn-github svg{display:block;width:20px;height:20px}
+#solvenotes-panel .sn-auth-divider{display:flex;align-items:center;gap:8px;margin:8px 0;color:#9a978f;font-size:10px}
+#solvenotes-panel .sn-auth-divider:before,#solvenotes-panel .sn-auth-divider:after{height:1px;flex:1;content:"";background:#dedbd3}
+#solvenotes-panel .sn-auth-panel form{display:grid;grid-template-columns:1fr 1fr auto;gap:7px}
+#solvenotes-panel .sn-auth-panel input{width:100%!important;height:40px!important;margin:0!important;padding:8px 10px!important;border:1px solid #dedbd3!important;border-radius:5px!important;color:#2f2e2a!important;background:#fff!important;font:12px/1.2 "Avenir Next",Avenir,sans-serif!important}
+#solvenotes-panel .sn-auth-panel form button{min-width:70px!important;border:0!important;color:#f7f6f2!important;background:#292b27!important;font-size:12px!important}
+#solvenotes-panel .sn-auth-mode{display:block!important;margin:8px auto 0!important;padding:2px!important;border:0!important;color:#79766e!important;background:transparent!important;font-size:11px!important;text-decoration:underline}
+#solvenotes-panel .sn-auth-error{display:block;min-height:0;margin-top:5px;color:#9a4038!important;font-size:11px!important}
+#solvenotes-panel .sn-auth-busy{pointer-events:none;opacity:.55}
+#solvenotes-panel footer [data-save]{border:0!important;border-radius:5px!important;color:#f7f6f2!important;background:#292b27!important;box-shadow:none!important}
+
+/* Signed-out state: the drawer becomes a focused miniature Atelier login. */
+#solvenotes-panel.sn-disconnected .sn-drawer-top{margin-bottom:0!important}
+#solvenotes-panel.sn-disconnected .sn-drawer-top .sn-atelier-action,#solvenotes-panel.sn-disconnected .sn-drawer-top [data-sync],#solvenotes-panel.sn-disconnected header,#solvenotes-panel.sn-disconnected .sn-account-row,#solvenotes-panel.sn-disconnected .sn-header-actions,#solvenotes-panel.sn-disconnected .sn-badges,#solvenotes-panel.sn-disconnected .sn-count-popover,#solvenotes-panel.sn-disconnected .sn-flags,#solvenotes-panel.sn-disconnected .sn-notes-label,#solvenotes-panel.sn-disconnected textarea,#solvenotes-panel.sn-disconnected footer{display:none!important}
+#solvenotes-panel.sn-disconnected .sn-auth-panel{display:flex!important;max-width:340px;min-height:0;margin:auto!important;padding:0 0 40px!important;flex:1;flex-direction:column;justify-content:center;border:0!important;text-align:left}
+#solvenotes-panel .sn-auth-mark{display:grid;width:58px;height:58px;margin-bottom:25px;place-items:center;border-radius:50%;color:#f7f6f2;background:#292b27;font:600 31px/1 Iowan Old Style,Baskerville,Georgia,serif}
+#solvenotes-panel .sn-auth-eyebrow{margin:0 0 12px!important;color:#79766e!important;font-size:10px!important;font-weight:650!important;letter-spacing:.2em!important}
+#solvenotes-panel .sn-auth-panel h3{margin:0;color:#2f2e2a;font:400 38px/1.02 Iowan Old Style,Baskerville,Georgia,serif}
+#solvenotes-panel .sn-auth-intro{margin:12px 0 27px!important;color:#79766e!important;font-size:14px!important;line-height:1.55!important}
+#solvenotes-panel.sn-disconnected .sn-auth-providers{display:grid;grid-template-columns:1fr;gap:9px}
+#solvenotes-panel.sn-disconnected .sn-auth-providers button{min-height:47px!important;font-size:13px!important;background:rgba(255,255,255,.72)!important}
+#solvenotes-panel.sn-disconnected .sn-auth-divider{margin:13px 0!important}
+#solvenotes-panel.sn-disconnected .sn-auth-panel form{display:grid;grid-template-columns:1fr;gap:10px}
+#solvenotes-panel.sn-disconnected .sn-auth-panel form label{display:grid;gap:5px;color:#79766e;font-size:10px;font-weight:650;letter-spacing:.13em;text-transform:uppercase}
+#solvenotes-panel.sn-disconnected .sn-auth-panel input{height:45px!important;padding:10px 12px!important;font-size:14px!important;letter-spacing:normal!important;text-transform:none!important}
+#solvenotes-panel.sn-disconnected .sn-auth-panel form button{min-height:46px!important;margin-top:2px;border-radius:5px!important;font-size:14px!important}
+#solvenotes-panel.sn-disconnected .sn-auth-mode{margin-top:13px!important;font-size:12px!important}
+#solvenotes-panel.sn-disconnected .sn-auth-error{margin-top:10px!important;font-size:12px!important;line-height:1.4!important}
+@media(max-height:700px){#solvenotes-panel.sn-disconnected .sn-auth-panel{padding-bottom:10px!important}#solvenotes-panel .sn-auth-mark{width:46px;height:46px;margin-bottom:14px;font-size:25px}#solvenotes-panel .sn-auth-intro{margin-bottom:16px!important}#solvenotes-panel.sn-disconnected .sn-auth-providers button,#solvenotes-panel.sn-disconnected .sn-auth-panel input,#solvenotes-panel.sn-disconnected .sn-auth-panel form button{min-height:40px!important;height:40px!important}}
+
+/* Use only Atelier's established type system. */
+#solvenotes-panel{--atelier-sans:"Avenir Next",Avenir,"Segoe UI",Helvetica,Arial,sans-serif;--atelier-serif:"Iowan Old Style",Baskerville,"Times New Roman",serif;font-family:var(--atelier-sans)!important}
+#solvenotes-panel *{font-family:inherit!important}
+#atelier-notes-handle .sn-launcher-logo,#solvenotes-panel h2,#solvenotes-panel .sn-atelier-action,#solvenotes-panel .sn-auth-mark,#solvenotes-panel .sn-auth-panel h3,#solvenotes-panel .sn-account-avatar{font-family:var(--atelier-serif)!important}
+
+/* Quiet one-line review flags. */
+#solvenotes-panel .sn-flags{display:flex!important;gap:20px!important;padding:4px 0 8px!important;border-bottom:1px solid #dedbd3!important}
+#solvenotes-panel .sn-flags label,#solvenotes-panel .sn-flags label+label{display:flex!important;align-items:center!important;gap:8px!important;width:auto!important;padding:6px 0!important;border:0!important;background:transparent!important}
+#solvenotes-panel .sn-flags label span{display:block!important}
+#solvenotes-panel .sn-flags b{font-size:13px!important;font-weight:550!important;white-space:nowrap!important}
+#solvenotes-panel .sn-flags input{width:15px!important;height:15px!important;margin:0!important}
+
+/* Profile belongs in the bottom-left action area. */
+#solvenotes-panel footer{display:flex!important;align-items:center!important;gap:12px!important}
+#solvenotes-panel footer .sn-account-row{display:flex!important;min-width:0!important;min-height:44px!important;margin:0!important;padding:0!important;flex:1!important;border:0!important}
+#solvenotes-panel footer .sn-account-avatar{width:38px!important;height:38px!important;background-color:#fff!important;background-image:var(--sn-avatar-image,none)!important;background-position:center!important;background-size:cover!important;background-repeat:no-repeat!important}
+#solvenotes-panel footer .sn-account-copy strong{font-size:13px!important}
+#solvenotes-panel footer .sn-account-copy small{font-size:11px!important}
+#solvenotes-panel footer .sn-account-row>button{min-width:0!important;min-height:0!important;padding:4px 6px!important;border:0!important;color:#79766e!important;background:transparent!important;font-size:10px!important}
+#solvenotes-panel footer>[data-status]{display:none!important}
+#solvenotes-panel footer>[data-save]{flex:none!important}
+
+/* Final typography hierarchy: Atelier serif, with sans only for form copy and metrics. */
+#atelier-notes-handle .sn-launcher-logo{font-family:"Iowan Old Style",Baskerville,"Times New Roman",serif!important;font-weight:600!important}
+#solvenotes-panel,#solvenotes-panel *{font-family:"Iowan Old Style",Baskerville,"Times New Roman",serif!important}
+#solvenotes-panel textarea,#solvenotes-panel textarea::placeholder,#solvenotes-panel input,#solvenotes-panel .sn-badges,#solvenotes-panel .sn-badges *,#solvenotes-panel .sn-eyebrow,#solvenotes-panel .sn-auth-panel form label,#solvenotes-panel .sn-auth-panel form input{font-family:"Avenir Next",Avenir,"Segoe UI",Helvetica,Arial,sans-serif!important}
+
+/* Remove ornamental rules and let spacing do the grouping. */
+#solvenotes-panel header,#solvenotes-panel .sn-account-row,#solvenotes-panel .sn-badges,#solvenotes-panel .sn-flags{border:0!important}
+#solvenotes-panel header{padding-bottom:8px!important}
+#solvenotes-panel .sn-badges{padding:4px 0 10px!important}
+#solvenotes-panel .sn-flags{padding-top:0!important}
+
+/* Give the submission editor room to breathe. */
+#solvenotes-panel .sn-submission-pill [data-edit-count]{margin-left:8px!important;padding:3px 4px!important;font-family:"Avenir Next",Avenir,"Segoe UI",Helvetica,Arial,sans-serif!important}
+
+/* Connected identity and photo-triggered sign-out. */
+#solvenotes-panel footer .sn-account-row{position:relative!important;align-items:center!important}
+#solvenotes-panel footer .sn-account-avatar{cursor:pointer!important}
+#solvenotes-panel footer .sn-account-copy{display:flex!important;align-items:center!important}
+#solvenotes-panel footer .sn-account-copy strong{font-family:"Iowan Old Style",Baskerville,"Times New Roman",serif!important;font-size:18px!important;font-weight:700!important;line-height:1!important}
+#solvenotes-panel footer .sn-account-copy small{display:none!important}
+#solvenotes-panel footer .sn-account-row>button{display:none!important;position:absolute!important;bottom:calc(100% + 8px)!important;left:0!important;z-index:2!important;min-width:78px!important;padding:8px 10px!important;border:0!important;border-radius:4px!important;color:#fff!important;background:#a4473f!important;font-family:"Iowan Old Style",Baskerville,"Times New Roman",serif!important;font-size:13px!important;font-weight:700!important;box-shadow:0 8px 22px rgba(82,27,23,.2)!important}
+#solvenotes-panel footer .sn-account-row.sn-signout-open>button{display:block!important}
+#solvenotes-panel footer>[data-save]{min-width:82px!important;border:0!important;border-radius:4px!important;font-family:"Iowan Old Style",Baskerville,"Times New Roman",serif!important;font-size:16px!important;font-weight:700!important}

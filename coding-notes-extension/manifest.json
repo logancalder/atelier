@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "Atelier Problem Notes",
+  "version": "0.7.0",
+  "description": "Atelier notes, solve time, and first-try tracking for NeetCode.",
+  "permissions": ["storage", "offscreen"],
+  "host_permissions": [
+    "https://neetcode.io/*",
+    "https://www.neetcode.io/*",
+    "http://localhost:3000/*"
+  ],
+  "action": {
+    "default_title": "Open Atelier notes"
+  },
+  "options_page": "notes.html",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; frame-src http://localhost:3000"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://neetcode.io/problems/*",
+        "https://www.neetcode.io/problems/*"
+      ],
+      "js": ["atelier-sync.js", "content.js"],
+      "css": ["content.css", "neetcode.css", "leetcode.css", "content-theme.css", "atelier-content.css", "atelier-drawer.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}

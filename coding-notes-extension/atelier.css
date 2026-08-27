@@ -1,0 +1,186 @@
+:root {
+  --atelier-paper: #f7f6f2;
+  --atelier-ink: #2f2e2a;
+  --atelier-mute: #79766e;
+  --atelier-line: #dedbd3;
+  --atelier-sidebar: #252824;
+  --atelier-good-bg: #e7efe4;
+  --atelier-good: #3d5a3a;
+  --atelier-warn-bg: #f4ead4;
+  --atelier-warn: #7a5b1e;
+  --atelier-late-bg: #f6e4df;
+  --atelier-late: #8a4336;
+  --atelier-sans: "Avenir Next", Avenir, "Segoe UI", Helvetica, Arial, sans-serif;
+  --atelier-serif: "Iowan Old Style", Baskerville, "Times New Roman", serif;
+  color-scheme: light;
+}
+
+body {
+  color: var(--atelier-ink);
+  background: var(--atelier-paper);
+  font-family: var(--atelier-sans);
+}
+
+body > main {
+  width: min(1120px, calc(100% - clamp(3rem, 10vw, 9rem)));
+  padding: clamp(2.5rem, 6vw, 4.5rem) 0 6rem;
+}
+
+body > main > header {
+  min-height: 8rem;
+  align-items: flex-start;
+  margin-bottom: 2.25rem;
+  border-bottom: 1px solid var(--atelier-line);
+}
+
+small,
+.metric span,
+.site,
+.section-heading > span,
+.section-heading p {
+  color: var(--atelier-mute);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+.card h2,
+.card h2 a,
+.problem a,
+.section-heading h2 {
+  color: var(--atelier-ink);
+  font-family: var(--atelier-serif);
+  font-weight: 400;
+}
+
+h1 { margin-top: .35rem; font-size: clamp(2.2rem, 5vw, 3.2rem); line-height: 1.05; }
+header p { color: var(--atelier-mute); }
+
+button,
+.actions button,
+.toolbar input,
+.toolbar select,
+dialog input[type="number"],
+dialog textarea {
+  border: 1px solid var(--atelier-line);
+  border-radius: 6px;
+  color: var(--atelier-ink);
+  background: rgba(255,255,255,.7);
+  font-family: var(--atelier-sans);
+}
+
+button:hover { background: #fff; }
+
+#summary {
+  gap: 0;
+  margin-bottom: 3.5rem;
+  border-top: 1px solid var(--atelier-line);
+  border-bottom: 1px solid var(--atelier-line);
+}
+
+.metric {
+  padding: 1.25rem 1.5rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.metric + .metric { border-left: 1px solid var(--atelier-line); }
+.metric b { color: var(--atelier-ink); font-family: var(--atelier-serif); font-size: 2rem; font-weight: 400; }
+
+.insights-grid { gap: 3rem; }
+.activity-card,
+.retry-card,
+.card,
+.category-group {
+  border: 0;
+  border-top: 1px solid var(--atelier-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.activity-card,
+.retry-card { padding: 1.25rem 0; }
+.toolbar { margin: 3rem 0 1rem; }
+.view-switch { border-color: var(--atelier-line); border-radius: 6px; background: rgba(255,255,255,.45); }
+.view-switch button.active { border-radius: 4px; color: var(--atelier-ink); background: #fff; }
+
+#list { gap: 0; }
+.card { padding: 1.5rem 0; }
+.card h2 { font-size: 1.35rem; }
+.notes { border-color: var(--atelier-line); color: var(--atelier-ink); line-height: 1.65; }
+.muted { color: var(--atelier-mute); }
+.badge { border: 0; border-radius: 999px; color: var(--atelier-mute); background: transparent; }
+.badge.good, .hole { color: var(--atelier-good) !important; background: var(--atelier-good-bg); }
+.badge.warn { color: var(--atelier-warn); background: var(--atelier-warn-bg); }
+.badge.danger { color: var(--atelier-late); background: var(--atelier-late-bg); }
+.edit-problem { border-color: var(--atelier-line); border-radius: 6px; color: var(--atelier-mute); background: transparent; }
+.category-group h3 { border-color: var(--atelier-line); color: var(--atelier-mute); }
+.problem-row { border-color: var(--atelier-line); }
+.problem-row .row-title { color: var(--atelier-ink); font-family: var(--atelier-serif); font-size: .95rem; font-weight: 400; }
+
+dialog {
+  border: 1px solid rgba(55,53,47,.13);
+  border-radius: 1.25rem;
+  color: var(--atelier-ink);
+  background: #f8f4ed;
+  box-shadow: 0 28px 80px rgba(43,40,35,.23), 0 2px 10px rgba(43,40,35,.08);
+}
+dialog::backdrop { background: rgba(43,40,35,.34); backdrop-filter: blur(5px); }
+.dialog-head h2 { font-family: var(--atelier-serif); font-weight: 400; }
+.dialog-actions #edit-save { border-color: var(--atelier-sidebar); color: var(--atelier-paper); background: var(--atelier-sidebar); }
+
+/* The editor injected into LeetCode and NeetCode uses the same Atelier primitives. */
+#solvenotes-panel {
+  --sn-ink: var(--atelier-ink);
+  --sn-muted: var(--atelier-mute);
+  --sn-bg: var(--atelier-paper);
+  --sn-card: transparent;
+  --sn-line: var(--atelier-line);
+  --sn-accent: #9a6b4f;
+  color: var(--atelier-ink);
+  background: var(--atelier-paper);
+  font-family: var(--atelier-sans);
+}
+
+#solvenotes-panel .sn-editor { width: min(900px, 100%); padding: clamp(2rem, 5vw, 4.5rem); }
+#solvenotes-panel header { min-height: 7rem; margin-bottom: 2rem; border-bottom: 1px solid var(--atelier-line); }
+#solvenotes-panel .sn-eyebrow { color: var(--atelier-mute); font-size: 10px; font-weight: 600; letter-spacing: .18em; }
+#solvenotes-panel h2 { margin-top: .4rem; color: var(--atelier-ink); font-family: var(--atelier-serif); font-size: clamp(2rem, 4vw, 3rem); font-weight: 400; line-height: 1.05; }
+#solvenotes-panel button { border-color: var(--atelier-line); border-radius: 6px; color: var(--atelier-ink); background: rgba(255,255,255,.62); }
+#solvenotes-panel button:hover { background: #fff; }
+#solvenotes-panel .sn-badges { gap: .4rem; margin-bottom: 2.5rem; }
+#solvenotes-panel .sn-badges span { border: 0; border-radius: 999px; color: var(--atelier-mute); background: transparent; }
+#solvenotes-panel .sn-badges .sn-positive,
+#solvenotes-panel [data-hole] { color: var(--atelier-good); background: var(--atelier-good-bg); }
+#solvenotes-panel .sn-flags { gap: 0; margin-bottom: 2.5rem; border-top: 1px solid var(--atelier-line); border-bottom: 1px solid var(--atelier-line); }
+#solvenotes-panel .sn-flags label { padding: 1.25rem 0; border: 0; border-radius: 0; background: transparent; }
+#solvenotes-panel .sn-flags label + label { border-left: 1px solid var(--atelier-line); padding-left: 1.5rem; }
+#solvenotes-panel input { accent-color: #526d4c; }
+#solvenotes-panel .sn-notes-label { color: var(--atelier-mute); letter-spacing: .14em; }
+#solvenotes-panel textarea { border-color: var(--atelier-line); border-radius: 6px; color: var(--atelier-ink); background: rgba(255,255,255,.55); font-family: var(--atelier-sans); line-height: 1.65; }
+#solvenotes-panel textarea:focus { border-color: #9e9a90; box-shadow: 0 0 0 3px rgba(121,118,110,.1); }
+#solvenotes-panel footer [data-save] { border-color: var(--atelier-sidebar); color: var(--atelier-paper); background: var(--atelier-sidebar); }
+#solvenotes-panel .sn-count-popover { border-color: var(--atelier-line); border-radius: 6px; background: #fff; }
+#solvenotes-panel .sn-count-popover input { border-color: var(--atelier-line); border-radius: 4px; color: var(--atelier-ink); background: var(--atelier-paper); }
+#solvenotes-panel.sn-leetcode-overlay { border-radius: 0 !important; box-shadow: 0 18px 45px rgba(43,40,35,.22) !important; }
+
+#solvenotes-toast,
+#notes-toast {
+  border-color: var(--atelier-line);
+  border-radius: 6px;
+  color: var(--atelier-ink);
+  background: #fff;
+  box-shadow: 0 12px 35px rgba(43,40,35,.16);
+  font-family: var(--atelier-sans);
+}
+
+@media (max-width: 650px) {
+  body > main { width: min(100% - 2rem, 1120px); }
+  .metric + .metric { border-left: 0; border-top: 1px solid var(--atelier-line); }
+  #solvenotes-panel .sn-flags label + label { border-top: 1px solid var(--atelier-line); border-left: 0; padding-left: 0; }
+}

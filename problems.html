@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Practice Arena - Prova</title>
+  <meta name="description" content="Solve coding problems directly in Prova with in-browser code execution and test cases." />
+  <link rel="icon" type="image/png" href="site_logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/problems.css" />
+</head>
+<body>
+  <div class="page-bg-orb orb-a"></div>
+  <div class="page-bg-orb orb-b"></div>
+
+  <header class="arena-header">
+    <div class="arena-brand-wrap">
+      <a href="index.html" class="brand-link">
+        <img src="site_logo.png" alt="Prova" class="brand-logo" />
+      </a>
+      <div class="arena-title-group">
+        <span class="arena-kicker">Practice Arena</span>
+        <h1>In-Site Problem Solving</h1>
+      </div>
+    </div>
+
+    <div class="arena-actions">
+      <a href="index.html" class="ghost-btn">Back to Tracker</a>
+      <button id="btn-reset" class="ghost-btn">Reset Code</button>
+      <button id="btn-submit" class="solid-btn">Submit</button>
+    </div>
+  </header>
+
+  <main class="arena-shell">
+    <section class="problem-panel">
+      <div class="problem-toolbar">
+        <div>
+          <label for="problem-select" class="toolbar-label">Problem</label>
+          <select id="problem-select" class="select-input"></select>
+        </div>
+        <div class="difficulty-pill" id="problem-difficulty">Medium</div>
+      </div>
+
+      <div class="problem-head">
+        <h2 id="problem-title">Two Sum II - Input Array Is Sorted</h2>
+      </div>
+
+      <div class="problem-tabs" role="tablist" aria-label="Problem tabs">
+        <button class="tab-btn active" data-tab="description">Question</button>
+        <button class="tab-btn" data-tab="examples">Examples</button>
+        <button class="tab-btn" data-tab="constraints">Constraints</button>
+      </div>
+
+      <article class="problem-content" id="tab-description"></article>
+      <article class="problem-content hidden" id="tab-examples"></article>
+      <article class="problem-content hidden" id="tab-constraints"></article>
+    </section>
+
+    <section class="workspace-panel">
+      <div class="workspace-topbar">
+        <div class="workspace-meta">
+          <span class="meta-dot"></span>
+          <span id="status-text">Ready</span>
+        </div>
+
+        <div class="workspace-controls">
+          <label for="language-select" class="toolbar-label">Language</label>
+          <select id="language-select" class="select-input language-select">
+            <option value="python">Python</option>
+            <option value="javascript">JavaScript</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="editor-wrap">
+        <textarea id="code-editor" spellcheck="false" aria-label="Code editor"></textarea>
+      </div>
+
+      <div class="workspace-footer">
+        <button id="btn-run" class="ghost-btn">Run Tests</button>
+      </div>
+
+      <section class="test-panel">
+        <div class="test-panel-header">
+          <h3>Test Cases</h3>
+          <span id="test-summary">0 / 0 passed</span>
+        </div>
+
+        <div id="test-list" class="test-list"></div>
+
+        <div class="custom-test-box">
+          <label for="custom-input" class="toolbar-label">Custom Input (JSON object)</label>
+          <textarea id="custom-input" class="custom-input" spellcheck="false">{"numbers":[2,7,11,15],"target":9}</textarea>
+          <button id="btn-run-custom" class="mini-btn">Run Custom</button>
+        </div>
+
+        <div id="output-panel" class="output-panel"></div>
+      </section>
+    </section>
+  </main>
+
+  <script type="module" src="js/problems.js"></script>
+</body>
+</html>

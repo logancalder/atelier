@@ -1,0 +1,10 @@
+#solvenotes-tab.flexlayout__tab_button { opacity: 1; }
+#solvenotes-tab.flexlayout__tab_button[data-solvenotes-active="true"] { background: var(--fill-quaternary, rgba(255,255,255,.08)); }
+#solvenotes-tab.flexlayout__tab_button .sn-tab-icon { color: #6ea6ff; font-size: 15px; }
+
+.flexlayout__tabset > #solvenotes-panel {
+  position: absolute;
+  z-index: 20;
+  inset: 36px 0 0;
+  min-height: 0;
+}

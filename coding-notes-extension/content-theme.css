@@ -1,0 +1,23 @@
+#solvenotes-panel { --sn-ink:#2f2e2a; --sn-muted:#79766e; --sn-bg:#f7f6f2; --sn-card:#ffffff; --sn-line:#dedbd3; --sn-accent:#526d4c; }
+#solvenotes-panel button{appearance:none;-webkit-appearance:none;border-style:solid;box-shadow:none;text-shadow:none}
+#solvenotes-panel .sn-eyebrow { color:#9a6b4f; }
+#solvenotes-panel h2 { color:#2f2e2a; font-family:"Iowan Old Style",Baskerville,Georgia,serif; }
+#solvenotes-panel .sn-badges .sn-positive,#solvenotes-panel [data-hole] { border-color:#577348; color:#98c379; }
+#solvenotes-panel footer [data-save] { border-color:#252824; background:#252824; color:#f7f6f2; }
+#solvenotes-panel textarea:focus { border-color:#61afef; box-shadow:0 0 0 3px #61afef22; }
+#solvenotes-panel input { accent-color:#98c379; }
+#solvenotes-panel .sn-submission-pill { display:inline-flex; align-items:center; gap:5px; }
+#solvenotes-panel .sn-submission-pill button { padding:0; border:0; background:transparent; color:#61afef; font-size:11px; }
+#solvenotes-panel .sn-count-popover { display:none; align-items:center; gap:7px; width:max-content; max-width:100%; margin:-12px 0 18px; padding:8px 9px; border:1px solid #3e4451; border-radius:9px; background:#282c34; }
+#solvenotes-panel .sn-count-popover.sn-count-open { display:flex; }
+#solvenotes-panel .sn-count-popover[hidden].sn-count-open { display:flex!important; }
+#solvenotes-panel .sn-count-popover label { color:#7f848e; font-size:10px; }
+#solvenotes-panel .sn-count-popover input { width:60px; padding:5px 6px; border:1px solid #3e4451; border-radius:6px; background:#21252b; color:#abb2bf; }
+#solvenotes-panel .sn-count-popover button { padding:5px 7px; border-color:#3e4451; font-size:10px; }
+#solvenotes-panel .sn-count-popover [data-save-count] { border-color:#61afef; color:#61afef; }
+#solvenotes-panel .sn-header-actions { display:flex; gap:8px; }
+#solvenotes-panel .sn-sync-status { min-height:18px; margin:-10px 0 12px; color:#98c379; font-size:11px; }
+#solvenotes-panel .sn-sync-status.sn-error { color:#e06c75; }
+#solvenotes-panel.sn-leetcode-overlay{position:fixed!important;z-index:2147483645!important;min-height:0!important;margin:0!important;border:0!important;border-radius:0 0 8px 8px!important;box-shadow:0 18px 45px #0009!important}
+#solvenotes-toast{position:fixed;z-index:2147483647;right:22px;bottom:22px;max-width:390px;padding:10px 13px;border:1px solid #4b596b;border-radius:9px;background:#282c34;color:#abb2bf;box-shadow:0 12px 35px #0008;font:12px/1.4 ui-sans-serif,system-ui,sans-serif;opacity:0;pointer-events:none;transform:translateY(8px);transition:.18s ease}
+#solvenotes-toast.sn-toast-show{opacity:1;transform:none}#solvenotes-toast.sn-toast-error{border-color:#75444a;color:#e06c75}

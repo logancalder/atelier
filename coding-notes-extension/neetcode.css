@@ -1,0 +1,47 @@
+/* NeetCode uses an li > a > span structure for every native tab. */
+li#solvenotes-tab {
+  display: list-item;
+  align-self: stretch;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  opacity: 1;
+}
+
+li#solvenotes-tab > a {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  height: 2.15rem;
+  margin: auto .35rem;
+  padding: 0 .85rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+li#solvenotes-tab > a:hover {
+  border-color: rgba(121, 118, 110, .32);
+  background: rgba(247, 246, 242, .08);
+}
+
+li#solvenotes-tab.my-active-tab > a,
+li#solvenotes-tab[data-solvenotes-active="true"] > a {
+  border-color: #dedbd3;
+  color: #2f2e2a;
+  background: #f7f6f2;
+  box-shadow: 0 1px 3px rgba(43, 40, 35, .12);
+}
+
+li#solvenotes-tab .sn-tab-icon {
+  display: inline-flex;
+  width: 1em;
+  margin-right: .45rem;
+  align-items: center;
+  justify-content: center;
+  color: #9a6b4f;
+  font-family: "Iowan Old Style", Baskerville, Georgia, serif;
+  font-size: .95em;
+}
