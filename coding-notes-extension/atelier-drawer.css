@@ -76,7 +76,7 @@
 #solvenotes-panel .sn-auth-mark{display:grid;width:58px;height:58px;margin-bottom:25px;place-items:center;border-radius:50%;color:#f7f6f2;background:#292b27;font:600 31px/1 Iowan Old Style,Baskerville,Georgia,serif}
 #solvenotes-panel .sn-auth-eyebrow{margin:0 0 12px!important;color:#79766e!important;font-size:10px!important;font-weight:650!important;letter-spacing:.2em!important}
 #solvenotes-panel .sn-auth-panel h3{margin:0;color:#2f2e2a;font:400 38px/1.02 Iowan Old Style,Baskerville,Georgia,serif}
-#solvenotes-panel .sn-auth-intro{margin:12px 0 27px!important;color:#79766e!important;font-size:14px!important;line-height:1.55!important}
+#solvenotes-panel .sn-auth-intro{margin:12px 0 27px!important;color:#79766e!important;font-size:14px!important;line-height:1.55!important;font-weight:1!important;}
 #solvenotes-panel.sn-disconnected .sn-auth-providers{display:grid;grid-template-columns:1fr;gap:9px}
 #solvenotes-panel.sn-disconnected .sn-auth-providers button{min-height:47px!important;font-size:13px!important;background:rgba(255,255,255,.72)!important}
 #solvenotes-panel.sn-disconnected .sn-auth-divider{margin:13px 0!important}
@@ -133,3 +133,123 @@
 #solvenotes-panel footer .sn-account-row>button{display:none!important;position:absolute!important;bottom:calc(100% + 8px)!important;left:0!important;z-index:2!important;min-width:78px!important;padding:8px 10px!important;border:0!important;border-radius:4px!important;color:#fff!important;background:#a4473f!important;font-family:"Iowan Old Style",Baskerville,"Times New Roman",serif!important;font-size:13px!important;font-weight:700!important;box-shadow:0 8px 22px rgba(82,27,23,.2)!important}
 #solvenotes-panel footer .sn-account-row.sn-signout-open>button{display:block!important}
 #solvenotes-panel footer>[data-save]{min-width:82px!important;border:0!important;border-radius:4px!important;font-family:"Iowan Old Style",Baskerville,"Times New Roman",serif!important;font-size:16px!important;font-weight:700!important}
+
+/* Host pages sometimes apply broad section/article visibility rules. Keep the injected editor readable. */
+#solvenotes-panel .sn-editor > .sn-drawer-top,
+#solvenotes-panel .sn-editor > header,
+#solvenotes-panel .sn-editor > .sn-account-row,
+#solvenotes-panel .sn-editor > .sn-header-actions,
+#solvenotes-panel .sn-editor > .sn-sync-status,
+#solvenotes-panel .sn-editor > .sn-badges,
+#solvenotes-panel .sn-editor > .sn-flags,
+#solvenotes-panel .sn-editor > .sn-notes-label,
+#solvenotes-panel .sn-editor > textarea,
+#solvenotes-panel .sn-editor > footer,
+#solvenotes-panel .sn-editor > .sn-auth-panel {
+	visibility: visible !important;
+	opacity: 1 !important;
+}
+#solvenotes-panel:not(.sn-disconnected) .sn-editor > header,
+#solvenotes-panel:not(.sn-disconnected) .sn-editor > .sn-account-row,
+#solvenotes-panel:not(.sn-disconnected) .sn-editor > .sn-badges,
+#solvenotes-panel:not(.sn-disconnected) .sn-editor > .sn-flags,
+#solvenotes-panel:not(.sn-disconnected) .sn-editor > .sn-notes-label,
+#solvenotes-panel:not(.sn-disconnected) .sn-editor > textarea,
+#solvenotes-panel:not(.sn-disconnected) .sn-editor > footer {
+	display: block !important;
+}
+#solvenotes-panel:not(.sn-disconnected) .sn-editor > .sn-account-row,
+#solvenotes-panel:not(.sn-disconnected) .sn-editor > .sn-badges,
+#solvenotes-panel:not(.sn-disconnected) .sn-editor > .sn-flags,
+#solvenotes-panel:not(.sn-disconnected) .sn-editor > footer {
+	display: flex !important;
+}
+#solvenotes-panel.sn-disconnected .sn-editor > .sn-auth-panel {
+	display: flex !important;
+}
+
+/* Final drawer state design: site-matched SSO, centered metrics, and review cards. */
+#solvenotes-panel:not(.sn-disconnected) .sn-badges{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:0!important;margin:2px 0 12px!important;padding:14px 0 16px!important;border-top:1px solid #dedbd3!important;border-bottom:1px solid #dedbd3!important;text-align:center!important}
+#solvenotes-panel:not(.sn-disconnected) .sn-badges>span{display:grid!important;min-width:0!important;padding:2px 9px!important;place-items:center!important;gap:6px!important;border:0!important;border-radius:0!important;background:transparent!important}
+#solvenotes-panel:not(.sn-disconnected) .sn-badges>span+span{border-left:1px solid #dedbd3!important}
+#solvenotes-panel:not(.sn-disconnected) .sn-badges>[data-hole]{display:none!important}
+#solvenotes-panel:not(.sn-disconnected) .sn-badges small{display:block!important;color:#8a877f!important;font-family:"Avenir Next",Avenir,"Segoe UI",Helvetica,Arial,sans-serif!important;font-size:9px!important;font-weight:700!important;letter-spacing:.16em!important;line-height:1!important;text-transform:uppercase!important}
+#solvenotes-panel:not(.sn-disconnected) .sn-badges b{display:block!important;color:#292b27!important;font-family:"Iowan Old Style",Baskerville,"Times New Roman",serif!important;font-size:17px!important;font-weight:600!important;line-height:1.1!important;text-align:center!important}
+#solvenotes-panel:not(.sn-disconnected) .sn-submission-pill{position:relative!important}
+#solvenotes-panel:not(.sn-disconnected) .sn-submission-pill [data-edit-count]{position:absolute!important;top:-5px!important;right:3px!important;width:20px!important;height:20px!important;min-width:0!important;margin:0!important;padding:0!important;transform:none!important;border:0!important;border-radius:50%!important;color:#8a877f!important;background:transparent!important;font-family:"Avenir Next",Avenir,sans-serif!important;font-size:10px!important}
+#solvenotes-panel:not(.sn-disconnected) .sn-flags{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;margin:0 0 13px!important;padding:0!important;border:0!important}
+#solvenotes-panel:not(.sn-disconnected) .sn-flags label,#solvenotes-panel:not(.sn-disconnected) .sn-flags label+label{display:grid!important;grid-template-columns:19px minmax(0,1fr)!important;align-items:start!important;gap:10px!important;width:auto!important;min-width:0!important;margin:0!important;padding:12px!important;border:1px solid #dedbd3!important;border-radius:7px!important;color:#292b27!important;background:rgba(255,255,255,.5)!important;cursor:pointer!important;transition:border-color .18s ease,background .18s ease,box-shadow .18s ease!important}
+#solvenotes-panel:not(.sn-disconnected) .sn-flags label:hover{border-color:#aaa69d!important;background:#fff!important}
+#solvenotes-panel:not(.sn-disconnected) .sn-flags label:has(input:checked){border-color:#777d71!important;background:#eeece5!important;box-shadow:inset 0 0 0 1px rgba(41,43,39,.08)!important}
+#solvenotes-panel:not(.sn-disconnected) .sn-flags input{appearance:none!important;display:grid!important;width:18px!important;height:18px!important;margin:1px 0 0!important;place-items:center!important;border:1px solid #aaa69d!important;border-radius:50%!important;background:#fff!important;cursor:pointer!important}
+#solvenotes-panel:not(.sn-disconnected) .sn-flags input::after{width:8px!important;height:8px!important;border-radius:50%!important;background:#292b27!important;content:""!important;transform:scale(0)!important;transition:transform .15s ease!important}
+#solvenotes-panel:not(.sn-disconnected) .sn-flags input:checked::after{transform:scale(1)!important}
+#solvenotes-panel:not(.sn-disconnected) .sn-flags label span{display:grid!important;min-width:0!important;gap:4px!important}
+#solvenotes-panel:not(.sn-disconnected) .sn-flags b{color:#292b27!important;font-family:"Iowan Old Style",Baskerville,"Times New Roman",serif!important;font-size:15px!important;font-weight:650!important;line-height:1.05!important;white-space:normal!important}
+#solvenotes-panel:not(.sn-disconnected) .sn-flags small{display:block!important;color:#79766e!important;font-family:"Avenir Next",Avenir,"Segoe UI",Helvetica,Arial,sans-serif!important;font-size:10px!important;line-height:1.35!important}
+#solvenotes-panel.sn-disconnected{border-color:rgba(255,255,255,.14)!important;color:#f7f4ec!important;background:#20231f!important;box-shadow:0 30px 90px rgba(0,0,0,.34)!important}
+#solvenotes-panel.sn-disconnected .sn-editor{padding:28px 32px 32px!important;background:rgba(34,38,33,.94)!important}
+#solvenotes-panel.sn-disconnected .sn-drawer-top{position:absolute!important;z-index:2!important;top:22px!important;right:22px!important;left:22px!important;margin:0!important}
+#solvenotes-panel.sn-disconnected .sn-drawer-top [data-close]{margin-left:auto!important;border-color:rgba(255,255,255,.22)!important;color:#f7f4ec!important;background:rgba(255,255,255,.04)!important}
+#solvenotes-panel.sn-disconnected .sn-drawer-top [data-close]:hover{background:rgba(255,255,255,.1)!important}
+#solvenotes-panel.sn-disconnected .sn-auth-panel{display:flex!important;width:100%!important;max-width:350px!important;min-height:0!important;margin:auto!important;padding:52px 0 12px!important;flex:1!important;flex-direction:column!important;justify-content:center!important;border:0!important;color:#f7f4ec!important;background:transparent!important;text-align:left!important}
+#solvenotes-panel.sn-disconnected .sn-auth-brand{display:inline-flex!important;align-items:center!important;gap:11px!important;margin-bottom:34px!important;color:#f7f4ec!important}
+#solvenotes-panel.sn-disconnected .sn-auth-brand span{display:grid!important;width:36px!important;height:36px!important;place-items:center!important;border:1px solid rgba(255,255,255,.35)!important;border-radius:50%!important;color:#20231f!important;background:#fff!important;font-family:"Iowan Old Style",Baskerville,"Times New Roman",serif!important;font-size:20px!important}
+#solvenotes-panel.sn-disconnected .sn-auth-brand strong{font-family:"Iowan Old Style",Baskerville,"Times New Roman",serif!important;font-size:22px!important;font-weight:500!important}
+#solvenotes-panel.sn-disconnected .sn-auth-eyebrow{margin:0 0 8px!important;color:#a9ab9f!important;font-family:"Avenir Next",Avenir,"Segoe UI",Helvetica,Arial,sans-serif!important;font-size:9px!important;font-weight:700!important;letter-spacing:.18em!important}
+#solvenotes-panel.sn-disconnected .sn-auth-panel h3{margin:0!important;color:#f7f4ec!important;font-family:"Iowan Old Style",Baskerville,"Times New Roman",serif!important;font-size:42px!important;font-weight:400!important;line-height:1!important}
+#solvenotes-panel.sn-disconnected .sn-auth-intro{margin:13px 0 24px!important;color:#a9ab9f!important;font-family:"Avenir Next",Avenir,"Segoe UI",Helvetica,Arial,sans-serif!important;font-size:13px!important;line-height:1.55!important}
+#solvenotes-panel.sn-disconnected .sn-auth-providers{display:grid!important;grid-template-columns:1fr!important;gap:9px!important}
+#solvenotes-panel.sn-disconnected .sn-auth-providers button{display:flex!important;width:100%!important;min-height:45px!important;align-items:center!important;justify-content:center!important;gap:9px!important;border:1px solid rgba(255,255,255,.17)!important;border-radius:6px!important;color:#f7f4ec!important;background:rgba(255,255,255,.06)!important;font-family:"Avenir Next",Avenir,"Segoe UI",Helvetica,Arial,sans-serif!important;font-size:13px!important}
+#solvenotes-panel.sn-disconnected .sn-auth-providers button:hover{background:rgba(255,255,255,.11)!important}
+#solvenotes-panel.sn-disconnected .sn-github{color:#f7f4ec!important}
+#solvenotes-panel.sn-disconnected .sn-auth-divider{margin:12px 0!important;color:#777d71!important;font-family:"Avenir Next",Avenir,sans-serif!important;font-size:10px!important}
+#solvenotes-panel.sn-disconnected .sn-auth-divider::before,#solvenotes-panel.sn-disconnected .sn-auth-divider::after{background:rgba(255,255,255,.12)!important}
+#solvenotes-panel.sn-disconnected .sn-auth-panel form{display:grid!important;grid-template-columns:1fr!important;gap:10px!important}
+#solvenotes-panel.sn-disconnected .sn-auth-panel form label{display:grid!important;gap:5px!important;color:#a9ab9f!important;font-family:"Avenir Next",Avenir,"Segoe UI",Helvetica,Arial,sans-serif!important;font-size:9px!important;font-weight:700!important;letter-spacing:.13em!important;text-transform:uppercase!important}
+#solvenotes-panel.sn-disconnected .sn-auth-panel input{width:100%!important;height:44px!important;padding:10px 12px!important;border:1px solid rgba(255,255,255,.18)!important;border-radius:6px!important;outline:none!important;color:#fff!important;background:rgba(255,255,255,.06)!important;font-family:"Avenir Next",Avenir,"Segoe UI",Helvetica,Arial,sans-serif!important;font-size:13px!important}
+#solvenotes-panel.sn-disconnected .sn-auth-panel input:focus{border-color:rgba(255,255,255,.42)!important;box-shadow:0 0 0 3px rgba(255,255,255,.06)!important}
+#solvenotes-panel.sn-disconnected .sn-auth-panel form button{width:100%!important;min-height:45px!important;margin-top:2px!important;border:1px solid #f7f4ec!important;border-radius:6px!important;color:#20231f!important;background:#f7f4ec!important;font-family:"Avenir Next",Avenir,"Segoe UI",Helvetica,Arial,sans-serif!important;font-size:13px!important;font-weight:650!important}
+#solvenotes-panel.sn-disconnected .sn-auth-mode{width:100%!important;margin:11px 0 0!important;border:0!important;color:#d6c39f!important;background:transparent!important;font-family:"Avenir Next",Avenir,"Segoe UI",Helvetica,Arial,sans-serif!important;font-size:11px!important;text-align:center!important;text-decoration:none!important}
+#solvenotes-panel.sn-disconnected .sn-auth-error{margin-top:9px!important;color:#e9a597!important;font-family:"Avenir Next",Avenir,"Segoe UI",Helvetica,Arial,sans-serif!important;font-size:11px!important;line-height:1.4!important}
+@media(max-height:760px){#solvenotes-panel.sn-disconnected .sn-editor{padding:20px 28px 22px!important}#solvenotes-panel.sn-disconnected .sn-auth-panel{padding-top:44px!important}#solvenotes-panel.sn-disconnected .sn-auth-brand{margin-bottom:18px!important}#solvenotes-panel.sn-disconnected .sn-auth-panel h3{font-size:35px!important}#solvenotes-panel.sn-disconnected .sn-auth-intro{margin-bottom:15px!important}#solvenotes-panel.sn-disconnected .sn-auth-providers button,#solvenotes-panel.sn-disconnected .sn-auth-panel input,#solvenotes-panel.sn-disconnected .sn-auth-panel form button{min-height:39px!important;height:39px!important}}
+
+/* Provider authentication progress stays legible while the visible OAuth window is open. */
+#solvenotes-panel .sn-auth-panel.sn-auth-busy{pointer-events:none!important;opacity:1!important}
+#solvenotes-panel .sn-auth-panel.sn-auth-busy button,#solvenotes-panel .sn-auth-panel.sn-auth-busy input{opacity:.58!important}
+#solvenotes-panel.sn-disconnected .sn-auth-error.sn-auth-progress{color:#a9ab9f!important;text-align:center!important}
+
+/* Connected drawer refinement: type hierarchy, feedback, profile menu, and seamless launcher. */
+#solvenotes-panel:not(.sn-disconnected) h2,#solvenotes-panel:not(.sn-disconnected) .sn-notes-label{font-family:"Iowan Old Style",Baskerville,"Times New Roman",serif!important}
+#solvenotes-panel:not(.sn-disconnected) .sn-notes-label{color:#66635d!important;font-size:13px!important;font-weight:650!important;letter-spacing:.13em!important}
+#solvenotes-panel:not(.sn-disconnected) .sn-badges,#solvenotes-panel:not(.sn-disconnected) .sn-badges *,#solvenotes-panel:not(.sn-disconnected) .sn-flags b,#solvenotes-panel:not(.sn-disconnected) footer .sn-account-copy strong,#solvenotes-panel:not(.sn-disconnected) footer>[data-save]{font-family:"Avenir Next",Avenir,"Segoe UI",Helvetica,Arial,sans-serif!important}
+#solvenotes-panel:not(.sn-disconnected) .sn-badges{justify-items:stretch!important}
+#solvenotes-panel:not(.sn-disconnected) .sn-badges>span{width:100%!important;align-content:center!important;justify-items:center!important;text-align:center!important}
+#solvenotes-panel:not(.sn-disconnected) .sn-badges b{width:100%!important;font-size:16px!important;font-weight:650!important;text-align:center!important;white-space:nowrap!important}
+#solvenotes-panel:not(.sn-disconnected) .sn-flags b{font-size:13px!important;font-weight:650!important;line-height:1.15!important}
+#solvenotes-panel:not(.sn-disconnected) footer .sn-account-copy{cursor:pointer!important}
+#solvenotes-panel:not(.sn-disconnected) footer .sn-account-copy strong{font-size:15px!important;font-weight:650!important;letter-spacing:0!important}
+#solvenotes-panel:not(.sn-disconnected) footer>[data-save]{min-width:96px!important;font-size:14px!important;font-weight:700!important;letter-spacing:.01em!important;transition:transform .18s ease,background .18s ease,color .18s ease,box-shadow .18s ease!important}
+#solvenotes-panel:not(.sn-disconnected) footer>[data-save].sn-save-saving{background:#4a4d47!important;color:#f7f6f2!important;transform:scale(.97)!important}
+#solvenotes-panel:not(.sn-disconnected) footer>[data-save].sn-save-success{background:#65725e!important;color:#fff!important;animation:sn-save-confirm .42s cubic-bezier(.2,.8,.25,1)!important}
+#solvenotes-panel:not(.sn-disconnected) footer>[data-save].sn-save-error{color:#fff!important;background:#9a4038!important}
+@keyframes sn-save-confirm{0%{transform:scale(.96)}55%{transform:scale(1.06);box-shadow:0 7px 20px rgba(60,85,56,.22)}100%{transform:scale(1);box-shadow:none}}
+#solvenotes-panel footer .sn-profile-menu{position:absolute!important;z-index:20!important;bottom:calc(100% + 10px)!important;left:0!important;display:grid!important;width:178px!important;overflow:hidden!important;border:1px solid #d8d3c8!important;border-radius:7px!important;background:#fff!important;box-shadow:0 14px 35px rgba(28,29,26,.18)!important}
+#solvenotes-panel footer .sn-profile-menu[hidden]{display:none!important}
+#solvenotes-panel footer .sn-profile-menu button{display:block!important;width:100%!important;min-width:0!important;min-height:0!important;margin:0!important;padding:11px 13px!important;border:0!important;border-radius:0!important;color:#292b27!important;background:#fff!important;font-family:"Avenir Next",Avenir,"Segoe UI",Helvetica,Arial,sans-serif!important;font-size:12px!important;font-weight:600!important;line-height:1.2!important;text-align:left!important;box-shadow:none!important}
+#solvenotes-panel footer .sn-profile-menu button+button{border-top:1px solid #ece9e2!important}
+#solvenotes-panel footer .sn-profile-menu button:hover{background:#f7f6f2!important}
+#solvenotes-panel footer .sn-profile-menu .sn-profile-signout{color:#a4473f!important;background:#fff!important}
+#solvenotes-panel footer .sn-profile-menu .sn-profile-signout:hover{color:#8d352f!important;background:#fbf3f1!important}
+#atelier-notes-handle{z-index:2147483644!important}
+#atelier-notes-handle[data-open]{transform:translateX(-430px)!important;border-color:#d8d3c8!important;background:#f7f6f2!important;box-shadow:0 12px 32px rgba(18,18,16,.16)!important}
+body:has(#solvenotes-panel.sn-disconnected[data-open]) #atelier-notes-handle{border-color:rgba(255,255,255,.14)!important;background:#222621!important}
+body:has(#solvenotes-panel.sn-disconnected[data-open]) #atelier-notes-handle .sn-launcher-logo{color:#f7f4ec!important}
+/* Compact submission count editor anchored to the metric corner. */
+#solvenotes-panel:not(.sn-disconnected) .sn-submission-pill [data-edit-count]{position:absolute!important;z-index:2!important;top:-6px!important;right:8px!important;display:grid!important;width:25px!important;height:25px!important;min-width:25px!important;margin:0!important;padding:0!important;place-items:center!important;border:0!important;border-radius:50%!important;color:#292b27!important;background:#e9e6df!important;font-family:"Avenir Next",Avenir,"Segoe UI",Helvetica,Arial,sans-serif!important;font-size:12px!important;font-weight:600!important;line-height:1!important;box-shadow:none!important}
+#solvenotes-panel:not(.sn-disconnected) .sn-submission-pill [data-edit-count]:hover{background:#ddd9d0!important;transform:rotate(-5deg)!important}
+#solvenotes-panel .sn-count-popover[hidden]{display:none!important}
+#solvenotes-panel:not(.sn-disconnected) .sn-submission-pill .sn-count-popover.sn-count-open{position:absolute!important;z-index:30!important;top:calc(100% + 9px)!important;left:50%!important;display:grid!important;width:112px!important;grid-template-columns:minmax(0,1fr) 30px!important;gap:5px!important;margin:0!important;padding:6px!important;transform:translateX(-50%)!important;border:1px solid #d8d3c8!important;border-radius:6px!important;background:#fff!important;box-shadow:0 10px 28px rgba(31,32,28,.16)!important}
+#solvenotes-panel:not(.sn-disconnected) .sn-submission-pill .sn-count-popover input{display:block!important;width:100%!important;height:30px!important;margin:0!important;padding:4px 6px!important;border:1px solid #d8d3c8!important;border-radius:4px!important;outline:none!important;color:#292b27!important;background:#f7f6f2!important;font-family:"Avenir Next",Avenir,"Segoe UI",Helvetica,Arial,sans-serif!important;font-size:12px!important;text-align:center!important}
+#solvenotes-panel:not(.sn-disconnected) .sn-submission-pill .sn-count-popover input:focus{border-color:#8b887f!important;box-shadow:0 0 0 2px rgba(41,43,39,.07)!important}
+#solvenotes-panel:not(.sn-disconnected) .sn-submission-pill .sn-count-popover button{display:grid!important;width:30px!important;height:30px!important;min-width:30px!important;min-height:30px!important;margin:0!important;padding:0!important;place-items:center!important;border:0!important;border-radius:4px!important;color:#f7f6f2!important;background:#292b27!important;font-family:"Avenir Next",Avenir,"Segoe UI",Helvetica,Arial,sans-serif!important;font-size:12px!important;font-weight:700!important}

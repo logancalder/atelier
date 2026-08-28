@@ -16,6 +16,27 @@ function solved(problem: CodingProblem) {
   return problem.submissions.some((submission) => submission.accepted);
 }
 
+function solvedAt(problem: CodingProblem) {
+  return problem.submissions
+    .filter((submission) => submission.accepted && !Number.isNaN(new Date(submission.at).valueOf()))
+    .map((submission) => submission.at)
+    .sort()[0] ?? null;
+}
+
+function solvedDate(problem: CodingProblem) {
+  const value = solvedAt(problem);
+  return value ? new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(value)) : null;
+}
+
+function problemLink(problem: CodingProblem) {
+  if (problem.leetcodeSlug) return `https://leetcode.com/problems/${problem.leetcodeSlug}/`;
+  if (problem.url.includes("neetcode.io")) {
+    const slug = problem.url.match(/\/problems\/([^/?#]+)/)?.[1];
+    if (slug) return `https://leetcode.com/problems/${slug}/`;
+  }
+  return problem.url;
+}
+
 function duration(seconds: number) {
   const minutes = Math.floor(seconds / 60);
   return seconds >= 3600 ? `${Math.floor(seconds / 3600)}h ${minutes % 60}m` : `${minutes}m`;
@@ -106,13 +127,14 @@ export default async function CodingPage() {
                 <div className="problem-card-head">
                   <div className="min-w-0">
                     <p className="metric-label">{problem.key.split(":")[0]}{problem.tags?.[0] ? ` · ${problem.tags[0]}` : ""}</p>
-                    <h3><Link href={problem.url} target="_blank">{problem.title}</Link></h3>
+                    <h3><Link href={problemLink(problem)} target="_blank">{problem.title}</Link></h3>
                   </div>
                   <span className="problem-time">{duration(problem.seconds)}</span>
                 </div>
                 <div className="problem-badges">
                   <Badge tone={solved(problem) ? "good" : "quiet"}>{solved(problem) ? "Solved" : "Open"}</Badge>
                   <Badge tone="quiet">{submissions(problem)} submissions</Badge>
+                  {solvedDate(problem) ? <Badge tone="quiet">Solved {solvedDate(problem)}</Badge> : null}
                   {problem.holeInOne ? <Badge tone="good">★ Hole in one</Badge> : null}
                   {problem.neededHints ? <Badge tone="warn">Needed hints</Badge> : null}
                   {problem.dontUnderstand ? <Badge tone="late">Don’t understand</Badge> : null}

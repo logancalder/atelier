@@ -7,10 +7,12 @@
   "host_permissions": [
     "https://neetcode.io/*",
     "https://www.neetcode.io/*",
+    "https://leetcode.com/*",
     "http://localhost:3000/*"
   ],
   "action": {
-    "default_title": "Open Atelier notes"
+    "default_title": "Open Atelier notes",
+    "default_popup": "popup.html"
   },
   "options_page": "notes.html",
   "background": {

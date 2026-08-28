@@ -10,6 +10,8 @@
   let record;
   let saveTimer;
   let notesOpen = false;
+  let promptedSubmissionSignature = "";
+  let metadataSlugPending = "";
   let hiddenPanelChildren = [];
   const isLeetCode = () => location.hostname.includes("leetcode") && !location.hostname.includes("neetcode");
 
@@ -39,6 +41,65 @@
     if (!location.hostname.includes("neetcode")) return null;
     const href = document.querySelector('a[href*="leetcode.com/problems/"]')?.href;
     return href?.match(/leetcode\.com\/problems\/([^/?#]+)/i)?.[1] || null;
+  }
+
+  function findNeetCodeProblemSlug() {
+    if (!location.hostname.includes("neetcode")) return null;
+    const parts = location.pathname.split("/").filter(Boolean);
+    const marker = parts.indexOf("problems");
+    return marker >= 0 ? parts[marker + 1] || null : null;
+  }
+
+  function findVisibleLeetCodeNumber() {
+    const link = document.querySelector('a[href*="leetcode.com/problems/"]');
+    const label = `${link?.textContent || ""} ${link?.getAttribute("aria-label") || ""} ${link?.getAttribute("title") || ""}`;
+    return label.match(/\b(\d{1,5})\b/)?.[1] || null;
+  }
+
+  function displayProblemTitle() {
+    const title = record?.title || problemTitle();
+    const number = record?.leetcodeFrontendId;
+    return number ? `${number}. ${title.replace(/^\d+\.\s*/, "")}` : title;
+  }
+
+  async function syncLinkedLeetCodeMetadata() {
+    const discoveredSlug = findLeetCodeSlug();
+    const slug = record?.linkSource === "manual" ? record.leetcodeSlug || discoveredSlug : discoveredSlug;
+    const neetcodeSlug = findNeetCodeProblemSlug();
+    const lookupKey = slug || (neetcodeSlug ? "neetcode:" + neetcodeSlug : "");
+    if (!lookupKey || metadataSlugPending === lookupKey) return;
+    if (record.leetcodeFrontendId && (record.leetcodeSlug === slug || (!slug && record.neetcodeSlug === neetcodeSlug))) return;
+    metadataSlugPending = lookupKey;
+    try {
+      let frontendId = findVisibleLeetCodeNumber();
+      let metadata;
+      if (!frontendId && neetcodeSlug) {
+        try {
+          const response = await fetch(`/solutions/${encodeURIComponent(neetcodeSlug)}`);
+          if (response.ok) {
+            const html = await response.text();
+            frontendId = html.match(/LeetCode\s+(\d{1,5})/i)?.[1] || null;
+            const titleSlug = html.match(/leetcode\.com\/problems\/([a-z0-9-]+)/i)?.[1] || null;
+            if (frontendId) metadata = { questionFrontendId: frontendId, titleSlug };
+          }
+        } catch { /* Fall through to the extension service worker. */ }
+      }
+      if (!frontendId) {
+        metadata = await chrome.runtime.sendMessage({ type: "leetcode-metadata", slug, neetcodeSlug });
+        if (metadata?.error) return;
+        frontendId = metadata?.questionFrontendId || null;
+      }
+      if (!frontendId) return;
+      record.neetcodeSlug = neetcodeSlug || record.neetcodeSlug || null;
+      record.leetcodeSlug = metadata?.titleSlug || slug || record.leetcodeSlug || null;
+      record.leetcodeFrontendId = String(frontendId);
+      if (metadata?.title) record.leetcodeTitle = metadata.title;
+      const all = await readAll();
+      all[problemKey] = record;
+      await chrome.storage.local.set({ [storageKey]: all });
+      renderRecord();
+    } catch { /* Keep the NeetCode title when metadata is unavailable. */ }
+    finally { metadataSlugPending = ""; }
   }
 
   function findProblemTags() {
@@ -81,6 +142,30 @@
     showToast("Saved");
   }
 
+  async function saveWithFeedback(button) {
+    clearTimeout(button.snResetTimer);
+    button.disabled = true;
+    button.classList.remove("sn-save-success", "sn-save-error");
+    button.classList.add("sn-save-saving");
+    button.textContent = "Saving…";
+    try {
+      await save();
+      button.classList.remove("sn-save-saving");
+      button.classList.add("sn-save-success");
+      button.textContent = "Saved ✓";
+    } catch (error) {
+      button.classList.remove("sn-save-saving");
+      button.classList.add("sn-save-error");
+      button.textContent = "Try again";
+      showToast(error.message || "Could not save notes.", true);
+    } finally {
+      button.snResetTimer = setTimeout(() => {
+        button.disabled = false;
+        button.classList.remove("sn-save-success", "sn-save-error");
+        button.textContent = "Save";
+      }, 1300);
+    }
+  }
   function showToast(message, error = false) {
     let toast = document.getElementById("solvenotes-toast");
     if (!toast) { toast = document.createElement("div"); toast.id = "solvenotes-toast"; document.body.appendChild(toast); }
@@ -124,7 +209,7 @@
   function syncVisibleSubmissionHistory() {
     const isNeetCode = location.hostname.includes("neetcode");
     const onHistory = isNeetCode ? /\/history\/?$/.test(location.pathname) : Boolean(document.querySelector(".flexlayout__tab_button--selected #submissions_tab"));
-    if (!onHistory) return;
+    if (isNeetCode && !onHistory) return;
     const statuses = isNeetCode
       ? [...document.querySelectorAll("table.submission-history-table tbody > tr")]
           .map((row) => row.querySelector(".submission-status-text")?.textContent?.trim())
@@ -145,7 +230,18 @@
     }));
     record.holeInOne = Boolean(record.submissions[0]?.accepted);
     record.sortAt = new Date().toISOString();
-    save();
+    if (historySignature !== promptedSubmissionSignature) {
+      promptedSubmissionSignature = historySignature;
+      void save().then(() => {
+        openDrawer();
+        const notes = document.querySelector(`#${PANEL_ID} textarea`);
+        const status = document.querySelector(`#${PANEL_ID} [data-sync-status]`);
+        if (status) status.textContent = "Submission recorded. Add notes while it is fresh.";
+        notes?.focus();
+      });
+    } else {
+      void save();
+    }
   }
 
   function setSyncStatus(message, error = false) {
@@ -324,7 +420,7 @@
   }
 
   function editorMarkup() {
-    return `<div class="sn-editor"><div class="sn-drawer-top"><span class="sn-brand">ATELIER <i>·</i> CODING</span><button data-close type="button" aria-label="Close notes">×</button></div><header><div><span class="sn-eyebrow">PROBLEM NOTES</span><h2>${escapeHtml(record.title)}</h2></div></header><div class="sn-account-row"><span data-account-status>Checking account…</span><button data-account type="button"></button></div><div class="sn-header-actions"><button data-sync type="button">↻ Sync</button><button data-all type="button">Open Atelier ↗</button></div><div class="sn-sync-status" data-sync-status aria-live="polite"></div><div class="sn-badges"><span>◷ <b data-time></b></span><span class="sn-submission-pill"><b data-attempts></b><button data-edit-count type="button" aria-label="Edit submission count" title="Edit submission count">✎</button></span><span data-sub20></span><span data-hole></span></div><div class="sn-count-popover" data-count-popover hidden><label for="sn-count">Submission count</label><input id="sn-count" data-count-input type="number" min="0" step="1"><button data-save-count type="button">Set</button><button data-auto-count type="button">Automatic (<span data-auto-total></span>)</button></div><div class="sn-flags"><label><input data-hints type="checkbox"> <span><b>Needed hints</b><small>I didn’t solve this fully on my own</small></span></label><label><input data-understand type="checkbox"> <span><b>Don’t understand</b><small>Flag this problem to revisit</small></span></label></div><label class="sn-notes-label" for="sn-notes">Notes</label><textarea id="sn-notes" placeholder="Approach, edge cases, mistakes, complexity…"></textarea><footer><span data-status aria-live="polite"></span><button data-save type="button">Save notes</button></footer></div>`;
+    return `<div class="sn-editor"><div class="sn-drawer-top"><span class="sn-brand">ATELIER <i>·</i> CODING</span><button data-close type="button" aria-label="Close notes">×</button></div><header><div><span class="sn-eyebrow">PROBLEM NOTES</span><h2>${escapeHtml(displayProblemTitle())}</h2></div></header><div class="sn-account-row"><span data-account-status>Checking account…</span><button data-account type="button"></button></div><div class="sn-header-actions"><button data-sync type="button">↻ Sync</button><button data-all type="button">Open Atelier ↗</button></div><div class="sn-sync-status" data-sync-status aria-live="polite"></div><div class="sn-badges"><span><small>Time</small><b data-time></b></span><span class="sn-submission-pill"><small>Submissions</small><b data-attempts></b><button data-edit-count type="button" aria-label="Edit submission count" title="Edit submission count">✎</button></span><span><small>Sub 20</small><b data-sub20></b></span><span data-hole></span></div><div class="sn-count-popover" data-count-popover hidden><input id="sn-count" data-count-input aria-label="Submission count" type="number" min="0" step="1"><button data-save-count type="button" aria-label="Apply submission count">✓</button></div><div class="sn-flags"><label><input data-hints type="checkbox"> <span><b>Needed hints</b><small>I didn’t solve this fully on my own</small></span></label><label><input data-understand type="checkbox"> <span><b>Don’t understand</b><small>Flag this problem to revisit</small></span></label></div><label class="sn-notes-label" for="sn-notes">Notes</label><textarea id="sn-notes" placeholder="Approach, edge cases, mistakes, complexity…"></textarea><footer><span data-status aria-live="polite"></span><button data-save type="button">Save notes</button></footer></div>`;
   }
 
   function wireEditor(panel) {
@@ -336,6 +432,8 @@
     const badges = panel.querySelector(".sn-badges");
     const footer = panel.querySelector("footer");
     const accountRow = panel.querySelector(".sn-account-row");
+    const editCount = panel.querySelector("[data-edit-count]");
+    const countPopover = panel.querySelector("[data-count-popover]");
     panel.querySelector("[data-save]").textContent = "Save";
     sync.textContent = "↻";
     sync.setAttribute("aria-label", "Sync this problem");
@@ -346,8 +444,10 @@
     atelier.classList.add("sn-atelier-action");
     top.insertBefore(atelier, close);
     top.insertBefore(sync, close);
+    panel.querySelector(".sn-submission-pill").append(countPopover);
+    editCount.setAttribute("aria-expanded", "false");
     panel.querySelector("header").after(badges);
-    panel.querySelectorAll(".sn-flags small").forEach((description) => description.remove());
+
     footer.prepend(accountRow);
     notes.value = record.notes;
     panel.querySelector("[data-hints]").checked = record.neededHints;
@@ -356,16 +456,24 @@
     panel.querySelector("[data-close]").addEventListener("click", closeDrawer);
     wireAccount(panel);
     panel.querySelector("[data-sync]").addEventListener("click", syncSite);
-    panel.querySelector("[data-edit-count]").addEventListener("click", (event) => { event.stopPropagation(); panel.querySelector("[data-count-popover]").classList.toggle("sn-count-open"); });
-    panel.querySelector("[data-save]").addEventListener("click", save);
+    const closeCountPopover = () => { countPopover.hidden = true; countPopover.classList.remove("sn-count-open"); editCount.setAttribute("aria-expanded", "false"); };
+    editCount.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const opening = countPopover.hidden;
+      countPopover.hidden = !opening;
+      countPopover.classList.toggle("sn-count-open", opening);
+      editCount.setAttribute("aria-expanded", String(opening));
+      if (opening) { const input = countPopover.querySelector("[data-count-input]"); input.focus(); input.select(); }
+    });
+    panel.addEventListener("click", (event) => { if (!countPopover.hidden && !countPopover.contains(event.target) && event.target !== editCount) closeCountPopover(); });
+    panel.querySelector("[data-save]").addEventListener("click", (event) => { void saveWithFeedback(event.currentTarget); });
     panel.querySelector("[data-save-count]").addEventListener("click", () => {
       const value = panel.querySelector("[data-count-input]").value;
       if (!/^\d+$/.test(value)) return;
       record.submissionCountOverride = Number(value);
       record.holeInOne = Number(value) === 1;
-      save(); panel.querySelector("[data-count-popover]").classList.remove("sn-count-open");
+      save(); closeCountPopover();
     });
-    panel.querySelector("[data-auto-count]").addEventListener("click", () => { record.submissionCountOverride = null; record.holeInOne = record.submissions.length === 1 && Boolean(record.submissions[0]?.accepted); save(); panel.querySelector("[data-count-popover]").classList.remove("sn-count-open"); });
     notes.addEventListener("input", () => { record.notes = notes.value; clearTimeout(saveTimer); saveTimer = setTimeout(save, 700); });
     panel.querySelector("[data-hints]").addEventListener("change", (event) => { record.neededHints = event.target.checked; save(); });
     panel.querySelector("[data-understand]").addEventListener("change", (event) => { record.dontUnderstand = event.target.checked; save(); });
@@ -388,23 +496,49 @@
     accountRow.insertBefore(avatar, status);
     accountRow.insertBefore(identity, status);
     identity.append(name, status);
+    const profileMenu = document.createElement("div");
+    profileMenu.className = "sn-profile-menu";
+    profileMenu.hidden = true;
+    const profileButton = document.createElement("button");
+    profileButton.type = "button";
+    profileButton.className = "sn-profile-link";
+    profileButton.textContent = "View profile";
+    button.classList.add("sn-profile-signout");
+    profileMenu.append(profileButton, button);
+    accountRow.append(profileMenu);
     const authPanel = document.createElement("section");
     authPanel.className = "sn-auth-panel";
-    authPanel.innerHTML = `<div class="sn-auth-mark">A</div><p class="sn-auth-eyebrow">ATELIER · CODING</p><h3>Welcome back.</h3><p class="sn-auth-intro">Your private practice log, wherever you solve.</p><div class="sn-auth-providers"><button type="button" data-provider="google" aria-label="Continue with Google"><span class="sn-google">G</span> Continue with Google</button><button type="button" data-provider="github" aria-label="Continue with GitHub"><span class="sn-github">●</span> Continue with GitHub</button></div><div class="sn-auth-divider"><span>or</span></div><form><label>Email<input name="email" type="email" autocomplete="email" required></label><label>Password<input name="password" type="password" minlength="6" autocomplete="current-password" required></label><button type="submit" data-email-submit>Sign in</button></form><button type="button" class="sn-auth-mode">New here? Create an account</button><small class="sn-auth-error" role="alert"></small>`;
+    panel.classList.add("sn-disconnected");
+    authPanel.innerHTML = `<div class="sn-auth-brand"><span>A</span><strong>Atelier</strong></div><p class="sn-auth-eyebrow">YOUR PRIVATE WORKING DESK</p><h3>Welcome back.</h3><p class="sn-auth-intro">Coding practice and tutoring work, synced to your private account.</p><div class="sn-auth-providers"><button type="button" data-provider="google" aria-label="Continue with Google"><span class="sn-google">G</span> Continue with Google</button><button type="button" data-provider="github" aria-label="Continue with GitHub"><span class="sn-github">●</span> Continue with GitHub</button></div><div class="sn-auth-divider"><span>or</span></div><form><label>Email<input name="email" type="email" autocomplete="email" required></label><label>Password<input name="password" type="password" minlength="6" autocomplete="current-password" required></label><button type="submit" data-email-submit>Sign in</button></form><button type="button" class="sn-auth-mode">New here? Create an account</button><small class="sn-auth-error" role="alert"></small>`;
     authPanel.querySelector(".sn-google").innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.2c0-.7-.1-1.5-.2-2.2H12v4.2h5.4a4.6 4.6 0 0 1-2 3v2.7h3.3c1.9-1.8 2.9-4.4 2.9-7.7Z"/><path fill="#34A853" d="M12 22c2.7 0 5-.9 6.7-2.4l-3.3-2.7c-.9.6-2 1-3.4 1a5.9 5.9 0 0 1-5.5-4H3.1v2.8A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.5 13.9a6 6 0 0 1 0-3.8V7.3H3.1a10 10 0 0 0 0 9.4l3.4-2.8Z"/><path fill="#EA4335" d="M12 6.1c1.5 0 2.8.5 3.9 1.5l2.9-2.8A9.7 9.7 0 0 0 3.1 7.3l3.4 2.8A5.9 5.9 0 0 1 12 6.1Z"/></svg>`;
     authPanel.querySelector(".sn-github").innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .7a11.5 11.5 0 0 0-3.6 22.4c.6.1.8-.2.8-.5v-2c-3.3.7-4-1.4-4-1.4-.5-1.4-1.3-1.8-1.3-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11.2 11.2 0 0 1 5.8 0c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.8 5.4-5.5 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.6.8.5A11.5 11.5 0 0 0 12 .7Z"/></svg>`;
-    accountRow.after(authPanel);
+    panel.querySelector("footer").before(authPanel);
     let authMode = "signin";
     const authError = authPanel.querySelector(".sn-auth-error");
     async function authenticate(payload) {
       authPanel.classList.add("sn-auth-busy");
-      authError.textContent = "";
+      authError.classList.add("sn-auth-progress");
+      authError.textContent = payload.provider === "email" ? "Signing in…" : `Opening ${payload.provider === "github" ? "GitHub" : "Google"} sign-in…`;
+      let authWindowId;
       try {
-        const result = await chrome.runtime.sendMessage({ type: "extension-auth", payload });
-        if (result?.error) throw new Error(result.error);
+        if (payload.provider === "email") {
+          const result = await chrome.runtime.sendMessage({ type: "extension-auth", payload });
+          if (result?.error) throw new Error(result.error);
+        } else {
+          await globalThis.AtelierSync.pair(async (code) => {
+            const opened = await chrome.runtime.sendMessage({ type: "open-provider-auth", code, provider: payload.provider });
+            if (opened?.error) throw new Error(opened.error);
+            authWindowId = opened?.windowId;
+          });
+        }
         await refresh();
-      } catch (error) { authError.textContent = error.message?.includes("context invalidated") ? "Reload this NeetCode page, then try again." : error.message || "Sign-in failed."; }
-      finally { authPanel.classList.remove("sn-auth-busy"); }
+      } catch (error) {
+        authError.classList.remove("sn-auth-progress");
+        authError.textContent = error.message?.includes("context invalidated") ? "Reload this NeetCode page, then try again." : error.message || "Sign-in failed.";
+      } finally {
+        if (authWindowId) void chrome.runtime.sendMessage({ type: "close-provider-auth", windowId: authWindowId });
+        authPanel.classList.remove("sn-auth-busy");
+      }
     }
     authPanel.querySelector(".sn-auth-providers").addEventListener("click", (event) => {
       const provider = event.target.closest("button[data-provider]")?.dataset.provider;
@@ -422,6 +556,9 @@
     });
     const refresh = async () => {
       const connected = await globalThis.AtelierSync.connected();
+      panel.classList.toggle("sn-disconnected", !connected);
+      authPanel.hidden = connected;
+      button.hidden = !connected;
       const cached = (await chrome.storage.local.get("atelier.profile"))["atelier.profile"];
       let profile = cached;
       if (connected) try { profile = await globalThis.AtelierSync.profile(); } catch { /* Show the cached identity while Atelier is offline. */ }
@@ -432,24 +569,40 @@
       avatar.style.setProperty("--sn-avatar-image", connected && profile?.photoURL ? `url(${JSON.stringify(profile.photoURL).slice(1, -1)})` : "none");
       avatar.classList.toggle("sn-has-photo", Boolean(connected && profile?.photoURL));
       button.textContent = connected ? "Sign Out" : "Connect";
-      button.hidden = !connected;
-      authPanel.hidden = connected;
-      panel.classList.toggle("sn-disconnected", !connected);
       return connected;
     };
-    await refresh();
+    try { await refresh(); }
+    catch (error) {
+      panel.classList.add("sn-disconnected");
+      authPanel.hidden = false;
+      button.hidden = true;
+      authError.textContent = error.message?.includes("context invalidated") ? "Reload this problem page to reconnect the extension." : "Could not check your Atelier connection. You can still sign in below.";
+    }
     avatar.setAttribute("role", "button");
     avatar.setAttribute("tabindex", "0");
-    avatar.setAttribute("aria-label", "Open profile actions");
-    const toggleProfileActions = () => accountRow.classList.toggle("sn-signout-open");
-    avatar.addEventListener("click", toggleProfileActions);
-    avatar.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); toggleProfileActions(); } });
+    avatar.setAttribute("aria-label", "Open profile menu");
+    avatar.setAttribute("aria-haspopup", "menu");
+    avatar.setAttribute("aria-expanded", "false");
+    profileMenu.setAttribute("role", "menu");
+    profileButton.setAttribute("role", "menuitem");
+    button.setAttribute("role", "menuitem");
+    const closeProfileActions = () => { profileMenu.hidden = true; avatar.setAttribute("aria-expanded", "false"); };
+    const toggleProfileActions = () => { const opening = profileMenu.hidden; profileMenu.hidden = !opening; avatar.setAttribute("aria-expanded", String(opening)); };
+    avatar.addEventListener("click", (event) => { event.stopPropagation(); toggleProfileActions(); });
+    avatar.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); toggleProfileActions(); } if (event.key === "Escape") closeProfileActions(); });
+    identity.setAttribute("role", "button");
+    identity.setAttribute("tabindex", "0");
+    identity.setAttribute("aria-label", "Open profile menu");
+    identity.addEventListener("click", (event) => { event.stopPropagation(); toggleProfileActions(); });
+    identity.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); toggleProfileActions(); } if (event.key === "Escape") closeProfileActions(); });
+    profileButton.addEventListener("click", () => { closeProfileActions(); chrome.runtime.sendMessage({ type: "open-profile" }); });
+    document.addEventListener("click", (event) => { if (!accountRow.contains(event.target)) closeProfileActions(); });
     button.addEventListener("click", async () => {
       if (!(await globalThis.AtelierSync.connected())) { chrome.runtime.sendMessage({ type: "open-auth" }); return; }
       button.disabled = true;
       try {
         await globalThis.AtelierSync.disconnect();
-        accountRow.classList.remove("sn-signout-open");
+        closeProfileActions();
         storageKey = await globalThis.AtelierSync.storageKey();
         await load();
         renderRecord();
@@ -505,12 +658,12 @@
   function renderRecord() {
     const panel = document.getElementById(PANEL_ID);
     if (!panel) return;
+    panel.querySelector("h2").textContent = displayProblemTitle();
     panel.querySelector("[data-time]").textContent = formatTime(record.seconds);
     const count = submissionCount();
     panel.querySelector("[data-attempts]").textContent = `${count} submission${count === 1 ? "" : "s"}`;
     panel.querySelector("[data-count-input]").value = count;
-    panel.querySelector("[data-auto-total]").textContent = record.submissions.length;
-    const sub20 = panel.querySelector("[data-sub20]"); sub20.textContent = isSub20() ? "✓ Sub 20" : "Sub 20 —"; sub20.classList.toggle("sn-positive", isSub20());
+    const sub20 = panel.querySelector("[data-sub20]"); sub20.textContent = isSub20() ? "✓ Yes" : "—"; sub20.classList.toggle("sn-positive", isSub20());
     const hole = panel.querySelector("[data-hole]"); hole.textContent = record.holeInOne ? "★ Hole in one" : ""; hole.hidden = !record.holeInOne;
   }
 
@@ -520,9 +673,9 @@
     if (!problemKey) return;
     storageKey = await globalThis.AtelierSync.storageKey();
     try { const merged = await globalThis.AtelierSync.reconcile(await readAll()); await chrome.storage.local.set({ [storageKey]: merged }); } catch { /* Atelier may not be running. */ }
-    await load(); mountLauncher();
+    await load(); mountLauncher(); void syncLinkedLeetCodeMetadata();
     chrome.runtime.onMessage.addListener((message) => { if (message?.type === "toggle-drawer") toggleDrawer(); });
-    const observer = new MutationObserver(() => { if (getProblemKey() !== problemKey) location.reload(); mountLauncher(); const linkedSlug = findLeetCodeSlug(); if (record.linkSource !== "manual" && linkedSlug && linkedSlug !== record.leetcodeSlug) { record.leetcodeSlug = linkedSlug; save(); } syncTimer(); syncVisibleSubmissionHistory(); });
+    const observer = new MutationObserver(() => { if (getProblemKey() !== problemKey) location.reload(); mountLauncher(); const linkedSlug = findLeetCodeSlug(); if (record.linkSource !== "manual" && linkedSlug && linkedSlug !== record.leetcodeSlug) { record.leetcodeSlug = linkedSlug; save(); void syncLinkedLeetCodeMetadata(); } else if (!record.leetcodeFrontendId && (linkedSlug || findNeetCodeProblemSlug())) { void syncLinkedLeetCodeMetadata(); } syncTimer(); syncVisibleSubmissionHistory(); });
     observer.observe(document.body, { childList: true, subtree: true, characterData: true });
     setInterval(syncTimer, 1000);
   }

@@ -3,6 +3,7 @@ import type { CodingProblem } from "@/lib/types";
 import { currentUser } from "@/lib/auth";
 import { extensionOwner } from "@/lib/extension-auth";
 import { firebaseAdminConfigured } from "@/lib/firebase-admin";
+import { syncCodingProblemsToProva } from "@/lib/prova";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -42,7 +43,11 @@ export async function POST(request: Request) {
   if (!candidates.length || !candidates.every(isProblem)) {
     return response({ error: "Expected one coding problem or an array of coding problems." }, 400);
   }
-  return response(await upsertCodingProblems(candidates, ownerId));
+  const notebook = await upsertCodingProblems(candidates, ownerId);
+  let provaSync = { matched: 0, unmatched: candidates.length };
+  try { provaSync = await syncCodingProblemsToProva(ownerId, candidates); }
+  catch { /* Problem Notes must remain available even if the Prova mirror is temporarily unavailable. */ }
+  return response({ ...notebook, provaSync });
 }
 
 export function OPTIONS() {

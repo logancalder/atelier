@@ -4,7 +4,7 @@ import { SeriesRow, SessionChip } from "@/components/rows";
 import { Shell } from "@/components/shell";
 import { SeriesForm, SessionForm } from "@/components/studio-forms";
 import { Card, Empty } from "@/components/ui";
-import { addDays, formatShortDate, parseDateKey, startOfWeek, toDateKey } from "@/lib/dates";
+import { addDays, formatShortDate, parseDateKey, startOfWeek, toDateKey, todayKey } from "@/lib/dates";
 import { readStudio, sortSessions } from "@/lib/db";
 import { weekSessions } from "@/lib/queries";
 import { dataOwnerId } from "@/lib/auth";
@@ -23,7 +23,7 @@ export default async function SessionsPage({
   const next = toDateKey(addDays(weekStart, 7));
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   const sessions = weekSessions(studio, weekStart);
-  const openSeries = studio.series.filter((series) => !series.endDate);
+  const openSeries = studio.series.filter((series) => !series.endDate || series.endDate > todayKey());
 
   return (
     <Shell

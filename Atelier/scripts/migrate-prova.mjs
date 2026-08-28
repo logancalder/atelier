@@ -11,12 +11,14 @@ const app = getApps()[0] || initializeApp({
     : applicationDefault(),
   projectId: process.env.FIREBASE_PROJECT_ID,
 });
-const problems = JSON.parse(await readFile(new URL("../data/prova-seed.json", import.meta.url), "utf8"));
+const source = process.env.PROVA_DATA_FILE || new URL("../../leetcode/data.json", import.meta.url);
+const problems = JSON.parse(await readFile(source, "utf8"));
 const user = await getAuth(app).getUserByEmail(email);
 const reference = getFirestore(app).collection("users").doc(user.uid).collection("snapshots").doc("prova");
 await reference.set({ problems, updatedAt: FieldValue.serverTimestamp(), source: "prova-json-migration" });
 await getFirestore(app).collection("users").doc(user.uid).set({ updatedAt: FieldValue.serverTimestamp() }, { merge: true });
 const written = await reference.get();
-const count = written.data()?.problems?.length ?? 0;
+const writtenProblems = written.data()?.problems ?? [];
+const count = writtenProblems.length;
 if (count !== problems.length) throw new Error(`Expected ${problems.length} problems but read back ${count}.`);
-console.log(JSON.stringify({ email, uid: user.uid, migrated: count, path: `users/${user.uid}/snapshots/prova` }));
+console.log(JSON.stringify({ email, uid: user.uid, migrated: count, solved: writtenProblems.filter((problem) => problem.solved).length, path: `users/${user.uid}/snapshots/prova` }));

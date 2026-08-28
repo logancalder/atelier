@@ -5,6 +5,7 @@ import { Shell } from "@/components/shell";
 import { NoteForm, PaymentForm, SeriesForm, SessionForm, StudentForm } from "@/components/studio-forms";
 import { Badge, Card, Empty } from "@/components/ui";
 import { formatMoney } from "@/lib/money";
+import { todayKey } from "@/lib/dates";
 import { readStudio, sortSessions } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { dataOwnerId } from "@/lib/auth";
@@ -22,7 +23,7 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
   const notes = studio.notes
     .filter((note) => note.studentId === id)
     .sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.createdAt.localeCompare(a.createdAt));
-  const series = studio.series.filter((item) => item.studentId === id && !item.endDate);
+  const series = studio.series.filter((item) => item.studentId === id && (!item.endDate || item.endDate > todayKey()));
   const owed = payments
     .filter((payment) => payment.status !== "received")
     .reduce((sum, payment) => sum + payment.amountCents, 0);

@@ -106,6 +106,7 @@ export type CodingProblem = {
   tags?: string[];
   difficulty?: string | null;
   leetcodeSlug?: string | null;
+  leetcodeFrontendId?: string | null;
   linkSource?: string | null;
   titleSource?: string | null;
   sortAt: string;

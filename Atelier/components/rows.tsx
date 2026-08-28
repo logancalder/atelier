@@ -163,8 +163,8 @@ export function SeriesRow({
           {series.endDate ? ` until ${formatShortDate(series.endDate)}` : " · open-ended"}
         </p>
       </div>
-      <ActionButton successMessage="Recurring series ended" variant="danger" action={() => endSeries(series.id)}>
-        End series
+      <ActionButton successMessage="Recurring series cancelled" variant="danger" action={() => endSeries(series.id)}>
+        Cancel series
       </ActionButton>
     </div>
   );

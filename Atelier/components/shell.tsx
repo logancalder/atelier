@@ -7,18 +7,20 @@ export async function Shell({
   title,
   eyebrow,
   actions,
+  className = "",
   children,
 }: {
   title: string;
   eyebrow?: string;
   actions?: ReactNode;
+  className?: string;
   children: ReactNode;
   section?: "coding" | "tutoring";
 }) {
   if (firebaseAdminConfigured && !(await currentUser())) redirect("/login");
   return (
     <>
-      <header className="page-header">
+      <header className={`page-header ${className}`.trim()}>
           <div className="min-w-0">
             {eyebrow ? (
               <p className="mb-1 text-[11px] uppercase tracking-[0.18em] text-mute">{eyebrow}</p>
@@ -27,7 +29,7 @@ export async function Shell({
           </div>
           {actions ? <div className="page-actions flex shrink-0 flex-wrap gap-2">{actions}</div> : null}
       </header>
-      <main className="page-main">{children}</main>
+      <main className={`page-main ${className}`.trim()}>{children}</main>
     </>
   );
 }
