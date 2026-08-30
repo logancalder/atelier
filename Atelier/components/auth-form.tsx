@@ -16,8 +16,16 @@ export function AuthForm({ destination = "/coding" }: { destination?: string }) 
   async function finish(credential: UserCredential) {
     const idToken = await credential.user.getIdToken();
     const response = await fetch("/api/auth/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ idToken }) });
+    if (!response.ok) {
+      const body = await response.text();
+      let message = "Sign-in failed.";
+      if (body) {
+        try { message = (JSON.parse(body) as { error?: string }).error || message; }
+        catch { message = `Sign-in failed (${response.status}).`; }
+      }
+      throw new Error(message);
+    }
     await signOut(clientAuth());
-    if (!response.ok) throw new Error((await response.json()).error || "Sign-in failed.");
     router.push(destination.startsWith("/") ? destination : "/coding");
     router.refresh();
   }

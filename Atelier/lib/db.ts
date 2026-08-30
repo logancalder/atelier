@@ -11,7 +11,7 @@ import type {
   Studio,
 } from "./types";
 
-const DATA_DIR = path.join(process.cwd(), "data");
+import { DATA_DIR } from "./data-path";
 const LEGACY_FILE = path.join(DATA_DIR, "studio.json");
 const LEGACY_OWNER_FILE = path.join(DATA_DIR, ".studio-legacy-owner");
 const safeOwner = (ownerId: string) => ownerId.replace(/[^a-zA-Z0-9_-]/g, "_");

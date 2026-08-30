@@ -1,4 +1,4 @@
-import { readCodingNotebook, upsertCodingProblems } from "@/lib/coding-db";
+import { deleteCodingProblem, readCodingNotebook, upsertCodingProblems } from "@/lib/coding-db";
 import type { CodingProblem } from "@/lib/types";
 import { currentUser } from "@/lib/auth";
 import { extensionOwner } from "@/lib/extension-auth";
@@ -8,7 +8,7 @@ import { syncCodingProblemsToProva } from "@/lib/prova";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
 };
 
 function response(body: unknown, status = 200) {
@@ -48,6 +48,20 @@ export async function POST(request: Request) {
   try { provaSync = await syncCodingProblemsToProva(ownerId, candidates); }
   catch { /* Problem Notes must remain available even if the Prova mirror is temporarily unavailable. */ }
   return response({ ...notebook, provaSync });
+}
+
+export async function DELETE(request: Request) {
+  const ownerId = await owner(request);
+  if (!ownerId) return response({ error: "Unauthorized" }, 401);
+  const body = await request.json().catch(() => null) as { key?: unknown } | null;
+  if (typeof body?.key !== "string" || !body.key) return response({ error: "A problem key is required." }, 400);
+  try {
+    const result = await deleteCodingProblem(body.key, ownerId);
+    return result.deleted ? response({ ok: true }) : response({ error: "Problem not found." }, 404);
+  } catch (error) {
+    console.error("Unable to delete coding problem", error);
+    return response({ error: "Could not delete the problem." }, 500);
+  }
 }
 
 export function OPTIONS() {

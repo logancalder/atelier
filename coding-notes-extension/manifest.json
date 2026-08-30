@@ -1,14 +1,14 @@
 {
   "manifest_version": 3,
   "name": "Atelier Problem Notes",
-  "version": "0.7.0",
+  "version": "0.7.2",
   "description": "Atelier notes, solve time, and first-try tracking for NeetCode.",
   "permissions": ["storage", "offscreen"],
   "host_permissions": [
     "https://neetcode.io/*",
     "https://www.neetcode.io/*",
     "https://leetcode.com/*",
-    "http://localhost:3000/*"
+    "https://atelier-olive-omega.vercel.app/*"
   ],
   "action": {
     "default_title": "Open Atelier notes",
@@ -19,7 +19,7 @@
     "service_worker": "background.js"
   },
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; frame-src http://localhost:3000"
+    "extension_pages": "script-src 'self'; object-src 'self'; frame-src https://atelier-olive-omega.vercel.app"
   },
   "content_scripts": [
     {

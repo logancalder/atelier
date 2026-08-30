@@ -10,7 +10,7 @@ async function connect(provider) {
   let loginWindow;
   try {
     await globalThis.AtelierSync.pair(async (code) => {
-      const url = `http://localhost:3000/extension-connect?code=${encodeURIComponent(code)}&provider=${encodeURIComponent(provider)}`;
+      const url = `https://atelier-olive-omega.vercel.app/extension-connect?code=${encodeURIComponent(code)}&provider=${encodeURIComponent(provider)}`;
       loginWindow = await chrome.windows.create({ url, type: "popup", width: 520, height: 760 });
     });
     if (loginWindow?.id) chrome.windows.remove(loginWindow.id).catch(() => {});

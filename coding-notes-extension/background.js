@@ -1,12 +1,12 @@
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type === "open-notes") {
-    chrome.tabs.create({ url: "http://localhost:3000/coding" });
+    chrome.tabs.create({ url: "https://atelier-olive-omega.vercel.app/coding" });
   }
   if (message?.type === "open-auth") {
     chrome.windows.create({ url: chrome.runtime.getURL("auth.html"), type: "popup", width: 480, height: 720 });
   }
   if (message?.type === "open-profile") {
-    chrome.tabs.create({ url: "http://localhost:3000/profile" });
+    chrome.tabs.create({ url: "https://atelier-olive-omega.vercel.app/profile" });
   }
   if (message?.type === "leetcode-metadata") {
     const slug = typeof message.slug === "string" && /^[a-z0-9-]+$/i.test(message.slug) ? message.slug : "";
@@ -41,7 +41,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     const provider = message.provider === "github" ? "github" : "google";
     const code = typeof message.code === "string" ? message.code : "";
     if (code.length < 32) { sendResponse({ error: "Invalid pairing code." }); return false; }
-    const url = `http://localhost:3000/extension-connect?code=${encodeURIComponent(code)}&provider=${encodeURIComponent(provider)}`;
+    const url = `https://atelier-olive-omega.vercel.app/extension-connect?code=${encodeURIComponent(code)}&provider=${encodeURIComponent(provider)}`;
     chrome.windows.create({ url, type: "popup", width: 520, height: 760 })
       .then((created) => sendResponse({ windowId: created.id }))
       .catch((error) => sendResponse({ error: error.message || "Could not open Atelier sign-in." }));
@@ -73,7 +73,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     await ensureOffscreen();
     const result = await chrome.runtime.sendMessage({ type: "firebase-auth", target: "offscreen", payload: message.payload });
     if (result?.error) throw new Error(result.error);
-    const response = await fetch("http://localhost:3000/api/extension/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ idToken: result.idToken }) });
+    const response = await fetch("https://atelier-olive-omega.vercel.app/api/extension/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ idToken: result.idToken }) });
     const session = await response.json();
     if (!response.ok) throw new Error(session.error || "Atelier could not create the extension session.");
     const scopedKey = `solvenotes.problems.${session.accountId}`;

@@ -29,7 +29,10 @@ export async function POST(request: NextRequest) {
     await hydrateDataForUser(decoded.uid);
     await mirrorDataForUser(decoded.uid);
     return Response.json({ ok: true });
-  } catch { return Response.json({ error: "Unable to create session." }, { status: 401 }); }
+  } catch (error) {
+    console.error("Unable to create Firebase session", error);
+    return Response.json({ error: "Unable to create session." }, { status: 401 });
+  }
 }
 
 export async function DELETE(request: NextRequest) {

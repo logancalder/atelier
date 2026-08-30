@@ -9,5 +9,10 @@ export async function extensionOwner(authorization: string | null) {
   const snapshot = await adminDb().collection("extensionTokens").doc(hashToken(token)).get();
   if (!snapshot.exists) return null;
   const data = snapshot.data();
-  return typeof data?.uid === "string" ? data.uid : null;
+  const uid = typeof data?.uid === "string" ? data.uid : null;
+  if (uid && process.env.VERCEL) {
+    const { hydrateDataForUser } = await import("./cloud-sync");
+    await hydrateDataForUser(uid);
+  }
+  return uid;
 }

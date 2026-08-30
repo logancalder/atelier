@@ -116,6 +116,7 @@ export type CodingProblem = {
 export type CodingNotebook = {
   problems: CodingProblem[];
   updatedAt: string | null;
+  deletedProblems: Record<string, string>;
 };
 
 export const STUDENT_COLORS = [

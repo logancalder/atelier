@@ -1,5 +1,5 @@
-const ATELIER_API = "http://localhost:3000/api/coding/problems";
-const ATELIER_CODING_URL = "http://localhost:3000/coding";
+const ATELIER_API = "https://atelier-olive-omega.vercel.app/api/coding/problems";
+const ATELIER_CODING_URL = "https://atelier-olive-omega.vercel.app/coding";
 
 globalThis.AtelierSync = {
   codingUrl: ATELIER_CODING_URL,
@@ -9,7 +9,7 @@ globalThis.AtelierSync = {
   async profile() {
     const token = await this.token();
     if (!token) return null;
-    const response = await fetch("http://localhost:3000/api/profile", { headers: { "Authorization": `Bearer ${token}` } });
+    const response = await fetch("https://atelier-olive-omega.vercel.app/api/profile", { headers: { "Authorization": `Bearer ${token}` } });
     if (!response.ok) throw new Error("Could not load your Atelier profile.");
     const profile = await response.json();
     await chrome.storage.local.set({ "atelier.profile": profile });
@@ -25,6 +25,7 @@ globalThis.AtelierSync = {
     const response = await fetch(ATELIER_API, { headers: await this.headers() });
     if (!response.ok) throw new Error("Atelier is unavailable.");
     const notebook = await response.json(), remoteByKey = Object.fromEntries((notebook.problems || []).map((item) => [item.key, item])), merged = { ...localByKey };
+    for (const key of Object.keys(notebook.deletedProblems || {})) delete merged[key];
     for (const remote of notebook.problems || []) {
       const local = merged[remote.key];
       if (!local || new Date(remote.updatedAt).getTime() > new Date(local.updatedAt).getTime()) merged[remote.key] = remote;
@@ -40,7 +41,7 @@ globalThis.AtelierSync = {
     else await chrome.runtime.sendMessage({ type: "open-auth" });
     for (let attempt = 0; attempt < 150; attempt += 1) {
       await new Promise((resolve) => setTimeout(resolve, 2000));
-      const response = await fetch(`http://localhost:3000/api/extension/pair?code=${encodeURIComponent(code)}`);
+      const response = await fetch(`https://atelier-olive-omega.vercel.app/api/extension/pair?code=${encodeURIComponent(code)}`);
       if (response.status === 202) continue;
       if (!response.ok) throw new Error("Could not pair with Atelier.");
       const { token, accountId } = await response.json();
@@ -53,5 +54,5 @@ globalThis.AtelierSync = {
     }
     throw new Error("Pairing timed out.");
   },
-  async disconnect() { const token = await this.token(); if (token) { try { await fetch("http://localhost:3000/api/extension/pair", { method: "DELETE", headers: { "Authorization": `Bearer ${token}` } }); } catch {} } await chrome.storage.local.remove(["atelier.authToken", "atelier.accountId", "atelier.profile"]); },
+  async disconnect() { const token = await this.token(); if (token) { try { await fetch("https://atelier-olive-omega.vercel.app/api/extension/pair", { method: "DELETE", headers: { "Authorization": `Bearer ${token}` } }); } catch {} } await chrome.storage.local.remove(["atelier.authToken", "atelier.accountId", "atelier.profile"]); },
 };

@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { DATA_DIR } from "./data-path";
 import {
   AccountSubtype,
   Configuration,
@@ -24,6 +25,7 @@ export type PlaidConnection = {
 
 export type PlaidZelleDeposit = {
   transactionId: string;
+  transactionIds: string[];
   senderName: string;
   amountCents: number;
   date: string;
@@ -42,7 +44,7 @@ export type ReconciliationLogEntry = {
 };
 
 const safeOwner = (ownerId: string) => ownerId.replace(/[^a-zA-Z0-9_-]/g, "_");
-const connectionFile = (ownerId: string) => path.join(process.cwd(), "data", "users", safeOwner(ownerId), "plaid.json");
+const connectionFile = (ownerId: string) => path.join(DATA_DIR, "users", safeOwner(ownerId), "plaid.json");
 
 export function plaidConfigured() {
   return Boolean(process.env.PLAID_CLIENT_ID && process.env.PLAID_SECRET);
@@ -55,7 +57,10 @@ export function readPlaidConnection(ownerId: string): PlaidConnection | null {
   return {
     ...parsed,
     seenTransactionIds: parsed.seenTransactionIds ?? [],
-    zelleDeposits: parsed.zelleDeposits ?? [],
+    zelleDeposits: (parsed.zelleDeposits ?? []).map((deposit) => ({
+      ...deposit,
+      transactionIds: deposit.transactionIds ?? [deposit.transactionId],
+    })),
     reconciliationLog: parsed.reconciliationLog ?? [],
   };
 }
@@ -100,15 +105,16 @@ export async function createPlaidLinkToken(ownerId: string) {
 
 export async function exchangePlaidToken(publicToken: string, institutionName: string | undefined, ownerId: string) {
   const response = await getPlaidClient().itemPublicTokenExchange({ public_token: publicToken });
+  const previous = readPlaidConnection(ownerId);
   const connection: PlaidConnection = {
     accessToken: response.data.access_token,
     itemId: response.data.item_id,
     institutionName: institutionName || "Connected bank",
     cursor: null,
     lastSyncedAt: null,
-    seenTransactionIds: [],
-    zelleDeposits: [],
-    reconciliationLog: [],
+    seenTransactionIds: previous?.seenTransactionIds ?? [],
+    zelleDeposits: previous?.zelleDeposits ?? [],
+    reconciliationLog: previous?.reconciliationLog ?? [],
   };
   writePlaidConnection(connection, ownerId);
   await mirrorPlaidConnection(connection, ownerId);
@@ -132,6 +138,14 @@ function parseZelleSender(transaction: Transaction) {
 
 function normalizedName(value: string) {
   return value.normalize("NFKD").replace(/[^a-z0-9]/gi, "").toLowerCase();
+}
+
+function zelleDepositKey(deposit: Pick<PlaidZelleDeposit, "senderName" | "amountCents" | "date">) {
+  return [
+    deposit.date,
+    deposit.amountCents,
+    normalizedName(deposit.senderName),
+  ].join("|");
 }
 
 function nameMatches(senderName: string, savedName: string) {
@@ -191,18 +205,37 @@ export async function syncPlaidTransactions(ownerId: string) {
 
   const history = await checkingTransactions(client, connection.accessToken);
   const deposits = new Map(connection.zelleDeposits.map((deposit) => [deposit.transactionId, deposit]));
+  const depositsByTransactionId = new Map(
+    connection.zelleDeposits.flatMap((deposit) =>
+      deposit.transactionIds.map((transactionId) => [transactionId, deposit] as const),
+    ),
+  );
+  const depositsByKey = new Map<string, PlaidZelleDeposit[]>();
+  for (const deposit of connection.zelleDeposits) {
+    const key = zelleDepositKey(deposit);
+    depositsByKey.set(key, [...(depositsByKey.get(key) ?? []), deposit]);
+  }
+  const claimedDeposits = new Set<string>();
   for (const transaction of history) {
     const senderName = parseZelleSender(transaction);
     if (!senderName) continue;
-    const existing = deposits.get(transaction.transaction_id);
-    deposits.set(transaction.transaction_id, {
-      transactionId: transaction.transaction_id,
+    const candidate = {
       senderName,
       amountCents: Math.round(Math.abs(transaction.amount) * 100),
       date: transaction.date,
       description: transactionDescription(transaction),
+    };
+    const existing = depositsByTransactionId.get(transaction.transaction_id)
+      ?? depositsByKey.get(zelleDepositKey(candidate))?.find((deposit) => !claimedDeposits.has(deposit.transactionId));
+    const deposit: PlaidZelleDeposit = {
+      transactionId: existing?.transactionId ?? transaction.transaction_id,
+      transactionIds: [...new Set([...(existing?.transactionIds ?? []), transaction.transaction_id])],
+      ...candidate,
       matchedPaymentIds: existing?.matchedPaymentIds ?? [],
-    });
+    };
+    deposits.set(deposit.transactionId, deposit);
+    depositsByTransactionId.set(transaction.transaction_id, deposit);
+    claimedDeposits.add(deposit.transactionId);
   }
 
   const zelleDeposits = [...deposits.values()].sort((a, b) => b.date.localeCompare(a.date));

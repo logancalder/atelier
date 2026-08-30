@@ -45,3 +45,6 @@ next-env.d.ts
 /data/*.json.tmp
 /data/users/
 /data/.*-legacy-owner
+
+.vercel
+.env*

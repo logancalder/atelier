@@ -8,8 +8,14 @@ export async function currentUser(): Promise<DecodedIdToken | null> {
   if (!firebaseAdminConfigured) return null;
   const session = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!session) return null;
-  try { return await adminAuth().verifySessionCookie(session, true); }
+  let user: DecodedIdToken;
+  try { user = await adminAuth().verifySessionCookie(session, true); }
   catch { return null; }
+  if (process.env.VERCEL) {
+    const { hydrateDataForUser } = await import("./cloud-sync");
+    await hydrateDataForUser(user.uid);
+  }
+  return user;
 }
 
 export async function dataOwnerId() {

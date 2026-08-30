@@ -153,6 +153,10 @@ textarea {
 .problem-card h3 { margin-top: .25rem; font-family: var(--font-serif-display); font-size: 1.35rem; line-height: 1.2; }
 .problem-card h3 a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .problem-time { flex: none; color: var(--mute); font-size: .78rem; }
+.problem-card-actions { display: flex; flex: none; align-items: center; gap: .5rem; }
+.problem-delete { display: flex; align-items: center; gap: .5rem; }
+.problem-delete button { padding: .3rem .55rem; font-size: .75rem; }
+.problem-delete span { max-width: 15rem; color: #9b4a3c; font-size: .72rem; }
 .problem-badges { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .85rem; }
 .problem-notes { max-width: 56rem; margin-top: 1rem; white-space: pre-wrap; font-size: .9rem; line-height: 1.65; }
 .activity-section { margin-bottom: 3.5rem; }

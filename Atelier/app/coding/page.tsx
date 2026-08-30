@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Shell } from "@/components/shell";
+import { DeleteCodingProblemButton } from "@/components/delete-coding-problem-button";
 import { Badge, Card, Empty } from "@/components/ui";
 import { readCodingNotebook } from "@/lib/coding-db";
 import { mirrorCurrentData } from "@/lib/cloud-sync";
@@ -126,10 +127,10 @@ export default async function CodingPage() {
               <article className="problem-card" key={problem.key}>
                 <div className="problem-card-head">
                   <div className="min-w-0">
-                    <p className="metric-label">{problem.key.split(":")[0]}{problem.tags?.[0] ? ` · ${problem.tags[0]}` : ""}</p>
+                    <p className="metric-label">{[problem.leetcodeFrontendId ? "#" + problem.leetcodeFrontendId : null, problem.key.split(":")[0], problem.tags?.[0] || null].filter(Boolean).join(" · ")}</p>
                     <h3><Link href={problemLink(problem)} target="_blank">{problem.title}</Link></h3>
                   </div>
-                  <span className="problem-time">{duration(problem.seconds)}</span>
+                  <div className="problem-card-actions"><span className="problem-time">{duration(problem.seconds)}</span><DeleteCodingProblemButton problemKey={problem.key} title={problem.title} /></div>
                 </div>
                 <div className="problem-badges">
                   <Badge tone={solved(problem) ? "good" : "quiet"}>{solved(problem) ? "Solved" : "Open"}</Badge>
