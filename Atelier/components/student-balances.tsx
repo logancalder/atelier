@@ -10,10 +10,10 @@ export function StudentBalances({ students, payments }: { students: Student[]; p
     .map((student) => {
       const studentPayments = payments.filter((payment) => payment.studentId === student.id);
       const dueCents = studentPayments
-        .filter((payment) => payment.status !== "received" && payment.dueDate <= today)
+        .filter((payment) => (payment.status === "missing" || payment.status === "upcoming") && payment.dueDate <= today)
         .reduce((sum, payment) => sum + payment.amountCents, 0);
       const upcomingCents = studentPayments
-        .filter((payment) => payment.status !== "received" && payment.dueDate > today)
+        .filter((payment) => payment.status === "upcoming" && payment.dueDate > today)
         .reduce((sum, payment) => sum + payment.amountCents, 0);
       return { student, dueCents, upcomingCents, hasPayments: studentPayments.length > 0 };
     })

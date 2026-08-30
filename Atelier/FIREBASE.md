@@ -35,11 +35,11 @@ users/{uid}
 
 users/{uid}/snapshots/studio
   settings
-  students[]
+  students[] (includes lateCancelFeeCents)
   series[]
-  sessions[]
+  sessions[] (status may be late_cancel)
   deletedSessionKeys[]
-  payments[]
+  payments[] (status may be cancelled)
   notes[]
   updatedAt
 

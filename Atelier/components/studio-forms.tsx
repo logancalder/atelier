@@ -60,6 +60,15 @@ export function StudentForm({ student }: { student?: Student }) {
           defaultValue={student ? centsToInput(student.hourlyRateCents) : "80"}
         />
       </Field>
+      <Field label="Late cancel fee" hint="Charged when cancelled within 24 hours">
+        <Input
+          name="lateCancelFee"
+          type="number"
+          min="0"
+          step="0.01"
+          defaultValue={student ? centsToInput(student.lateCancelFeeCents) : "80"}
+        />
+      </Field>
       <Field label="Default length (min)">
         <Input
           name="defaultDurationMin"

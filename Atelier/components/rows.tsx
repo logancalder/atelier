@@ -1,6 +1,6 @@
 "use client";
 
-import { deleteSession, endSeries, markPaymentReceived, markPaymentUnreceived, toggleNotePin, deleteNote, updateSessionStatus } from "@/lib/actions";
+import { deleteSession, endSeries, lateCancelSession, markPaymentReceived, markPaymentUnreceived, toggleNotePin, deleteNote, updateSessionStatus } from "@/lib/actions";
 import { formatRange, formatShortDate, formatTime } from "@/lib/dates";
 import { formatMoney } from "@/lib/money";
 import type { Note, Payment, RecurringSeries, Session, Student } from "@/lib/types";
@@ -16,7 +16,7 @@ export function SessionChip({
   session: Session;
   student?: Student | null;
 }) {
-  if (session.status === "cancelled") {
+  if (session.status === "cancelled" || session.status === "late_cancel") {
     return (
       <div className="mb-2 border-l-2 border-line px-2 py-1.5 text-xs text-mute">
         <Link href={`/students/${session.studentId}`} className="block line-through">
@@ -57,6 +57,8 @@ export function SessionRow({
       ? "good"
       : session.status === "cancelled"
         ? "quiet"
+        : session.status === "late_cancel"
+          ? "warn"
         : session.status === "no_show"
           ? "late"
           : "default";
@@ -80,11 +82,18 @@ export function SessionRow({
           <>
             <ActionButton successMessage="Session completed" action={() => updateSessionStatus(session.id, "completed")}>Done</ActionButton>
             <ActionButton successMessage="Session marked no-show" action={() => updateSessionStatus(session.id, "no_show")}>No-show</ActionButton>
+            <ActionButton
+              successMessage="Late cancellation recorded"
+              confirmMessage={`Mark this as a late cancellation and expect ${formatMoney(student?.lateCancelFeeCents ?? 0)} via Zelle? This is allowed only within 24 hours of the session.`}
+              action={() => lateCancelSession(session.id)}
+            >
+              Late cancel
+            </ActionButton>
             <ActionButton successMessage="Session cancelled" variant="danger" action={() => updateSessionStatus(session.id, "cancelled")}>
               Cancel
             </ActionButton>
           </>
-        ) : session.status === "cancelled" ? (
+        ) : session.status === "cancelled" || session.status === "late_cancel" ? (
           <>
             <ActionButton successMessage="Session restored" action={() => updateSessionStatus(session.id, "scheduled")}>Restore</ActionButton>
             <ActionButton
@@ -113,7 +122,7 @@ export function PaymentRow({
   student?: Student | null;
   zelleHandle?: string;
 }) {
-  const tone = payment.status === "received" ? "good" : payment.status === "missing" ? "late" : "warn";
+  const tone = payment.status === "received" ? "good" : payment.status === "missing" ? "late" : payment.status === "cancelled" ? "quiet" : "warn";
   return (
     <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line py-4 last:border-b-0">
       <div>
@@ -137,12 +146,12 @@ export function PaymentRow({
         ) : null}
         {payment.status === "received" ? (
           <ActionButton successMessage="Payment moved back to outstanding" action={() => markPaymentUnreceived(payment.id)}>Undo</ActionButton>
-        ) : (
+        ) : payment.status !== "cancelled" ? (
           <ActionButton successMessage="Payment marked received" variant="primary" action={() => markPaymentReceived(payment.id)}>
             Received via Zelle
           </ActionButton>
-        )}
-        {zelleHandle && payment.status !== "received" ? (
+        ) : null}
+        {zelleHandle && payment.status !== "received" && payment.status !== "cancelled" ? (
           <CopyButton
             text={`Hi${student ? ` ${student.name.split(" ")[0]}` : ""}, reminder to Zelle ${formatMoney(payment.amountCents)} to ${zelleHandle}. Thank you!`}
           />

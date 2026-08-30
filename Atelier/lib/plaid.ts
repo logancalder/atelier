@@ -306,7 +306,7 @@ export async function syncPlaidTransactions(ownerId: string) {
       }
 
       const possible = inWindow
-        .filter((payment) => payment.studentId === student.id && payment.status !== "received" && !deposit.matchedPaymentIds.includes(payment.id))
+        .filter((payment) => payment.studentId === student.id && (payment.status === "missing" || payment.status === "upcoming") && !deposit.matchedPaymentIds.includes(payment.id))
         .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
 
       let matchedThisDeposit = 0;
@@ -332,7 +332,7 @@ export async function syncPlaidTransactions(ownerId: string) {
           detail: `Marked ${matchedThisDeposit} outstanding payment${matchedThisDeposit === 1 ? "" : "s"} received.`,
         });
       } else if (linkedReceived === 0) {
-        const hasUnpaidInWindow = inWindow.some((payment) => payment.status !== "received");
+        const hasUnpaidInWindow = inWindow.some((payment) => payment.status === "missing" || payment.status === "upcoming");
         reconciliationLog.push({
           transactionId: deposit.transactionId,
           date: deposit.date,

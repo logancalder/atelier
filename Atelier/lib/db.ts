@@ -50,7 +50,10 @@ function loadRaw(ownerId = "local"): Studio {
     ...emptyStudio(),
     ...parsed,
     settings: { ...emptyStudio().settings, ...parsed.settings },
-    students: parsed.students ?? [],
+    students: (parsed.students ?? []).map((student) => ({
+      ...student,
+      lateCancelFeeCents: student.lateCancelFeeCents ?? student.hourlyRateCents,
+    })),
     series: parsed.series ?? [],
     sessions: parsed.sessions ?? [],
     deletedSessionKeys: parsed.deletedSessionKeys ?? [],
@@ -70,7 +73,7 @@ function persist(studio: Studio, ownerId = "local") {
 function refreshPaymentStatuses(studio: Studio) {
   const today = todayKey();
   for (const payment of studio.payments) {
-    if (payment.status === "received") continue;
+    if (payment.status === "received" || payment.status === "cancelled") continue;
     payment.status = payment.dueDate < today ? "missing" : "upcoming";
   }
 }
@@ -131,15 +134,22 @@ function expandRecurring(studio: Studio) {
 }
 
 export function ensureSessionPayment(studio: Studio, session: Session) {
-  if (session.status === "cancelled") return;
   const existing = studio.payments.find((payment) => payment.sessionId === session.id);
-  const amount = sessionAmount(session.rateCents, session.durationMin);
+  const student = studio.students.find((item) => item.id === session.studentId);
+  const amount = session.status === "late_cancel"
+    ? student?.lateCancelFeeCents ?? sessionAmount(session.rateCents, session.durationMin)
+    : sessionAmount(session.rateCents, session.durationMin);
   const dueDate = session.startsAt.slice(0, 10);
+  const paymentStatus = session.status === "cancelled" ? "cancelled" : "upcoming";
+  const memo = session.status === "late_cancel" ? "Late cancellation fee" : session.status === "cancelled" ? "Cancelled session" : "Session";
 
   if (existing) {
     if (existing.status !== "received") {
       existing.amountCents = amount;
       existing.dueDate = dueDate;
+      existing.status = paymentStatus;
+      existing.receivedAt = null;
+      existing.memo = memo;
     }
     return;
   }
@@ -151,17 +161,22 @@ export function ensureSessionPayment(studio: Studio, session: Session) {
     kind: "session",
     amountCents: amount,
     dueDate,
-    status: "upcoming",
+    status: paymentStatus,
     receivedAt: null,
-    memo: "Session",
+    memo,
     createdAt: new Date().toISOString(),
   });
+}
+
+function synchronizeSessionPayments(studio: Studio) {
+  for (const session of studio.sessions) ensureSessionPayment(studio, session);
 }
 
 export function cancelSessionPayment(studio: Studio, sessionId: string) {
   const payment = studio.payments.find((item) => item.sessionId === sessionId);
   if (payment && payment.status !== "received") {
-    studio.payments = studio.payments.filter((item) => item.id !== payment.id);
+    payment.status = "cancelled";
+    payment.receivedAt = null;
   }
 }
 
@@ -170,6 +185,7 @@ let queue: Promise<unknown> = Promise.resolve();
 export function readStudio(ownerId = "local"): Studio {
   const studio = loadRaw(ownerId);
   expandRecurring(studio);
+  synchronizeSessionPayments(studio);
   refreshPaymentStatuses(studio);
   persist(studio, ownerId);
   return studio;
@@ -182,6 +198,7 @@ export async function updateStudio<T>(mutator: (studio: Studio) => T, explicitOw
   const run = queue.then(() => {
     const studio = loadRaw(ownerId);
     expandRecurring(studio);
+    synchronizeSessionPayments(studio);
     const result = mutator(studio);
     refreshPaymentStatuses(studio);
     persist(studio, ownerId);

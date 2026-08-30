@@ -1,6 +1,6 @@
 export type StudentStatus = "active" | "paused" | "archived";
-export type SessionStatus = "scheduled" | "completed" | "cancelled" | "no_show";
-export type PaymentStatus = "upcoming" | "missing" | "received";
+export type SessionStatus = "scheduled" | "completed" | "cancelled" | "late_cancel" | "no_show";
+export type PaymentStatus = "upcoming" | "missing" | "received" | "cancelled";
 export type PaymentKind = "session" | "package" | "other";
 export type SessionPlace = "online" | "in_person" | "hybrid";
 
@@ -20,6 +20,7 @@ export type Student = {
   phone: string;
   zelleName: string;
   hourlyRateCents: number;
+  lateCancelFeeCents: number;
   defaultDurationMin: number;
   status: StudentStatus;
   color: string;

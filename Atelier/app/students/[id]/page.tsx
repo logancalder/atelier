@@ -27,7 +27,7 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
     .sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.createdAt.localeCompare(a.createdAt));
   const series = studio.series.filter((item) => item.studentId === id && (!item.endDate || item.endDate > today));
   const owed = payments
-    .filter((payment) => payment.status !== "received")
+    .filter((payment) => payment.status === "missing" || payment.status === "upcoming")
     .reduce((sum, payment) => sum + payment.amountCents, 0);
 
   return (
@@ -57,6 +57,7 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
           <p>Balance</p>
           <strong className={owed ? "text-[#a14135]" : "text-[#477047]"}>{owed ? formatMoney(owed) : "Paid up"}</strong>
         </div>
+        <div><p>Late cancel</p><strong>{formatMoney(student.lateCancelFeeCents)}</strong></div>
         {student.grade ? <div><p>Grade</p><strong>{student.grade}</strong></div> : null}
         {student.parentName ? <div><p>Parent</p><strong>{student.parentName}</strong></div> : null}
         {student.zelleName ? <div><p>Zelle sender</p><strong>{student.zelleName}</strong></div> : null}

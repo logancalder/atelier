@@ -12,8 +12,9 @@ type SortKey = "date-nearest" | "date-farthest" | "status";
 const statusOrder: Record<Session["status"], number> = {
   scheduled: 0,
   completed: 1,
-  no_show: 2,
-  cancelled: 3,
+  late_cancel: 2,
+  no_show: 3,
+  cancelled: 4,
 };
 
 function dayNumber(value: string) {
@@ -35,7 +36,7 @@ export function SessionList({
   const [sort, setSort] = useState<SortKey>("date-nearest");
   const [status, setStatus] = useState<Session["status"] | "all">("all");
   const [page, setPage] = useState(1);
-  const cancelledCount = sessions.filter((session) => session.status === "cancelled").length;
+  const cancelledCount = sessions.filter((session) => session.status === "cancelled" || session.status === "late_cancel").length;
   const todayNumber = dayNumber(today);
 
   const sorted = useMemo(() => {
@@ -78,6 +79,7 @@ export function SessionList({
             <option value="all">All statuses</option>
             <option value="scheduled">Scheduled</option>
             <option value="completed">Completed</option>
+            <option value="late_cancel">Late cancel</option>
             <option value="no_show">No-show</option>
             <option value="cancelled">Cancelled</option>
           </Select>
@@ -93,8 +95,8 @@ export function SessionList({
               setPage(1);
             }}
           >
-            <option value="date-nearest">Date · closest to today</option>
-            <option value="date-farthest">Date · farthest from today</option>
+            <option value="date-nearest">Soonest</option>
+            <option value="date-farthest">Farthest</option>
             <option value="status">Status</option>
           </Select>
         </label>

@@ -13,7 +13,7 @@ export function weekSessions(studio: Studio, weekStart: Date) {
 export function todaySessions(studio: Studio) {
   const today = todayKey();
   return studio.sessions
-    .filter((session) => session.startsAt.startsWith(today) && session.status !== "cancelled")
+    .filter((session) => session.startsAt.startsWith(today) && session.status !== "cancelled" && session.status !== "late_cancel")
     .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
 }
 
@@ -45,7 +45,12 @@ export function monthBookedCents(studio: Studio, month: string) {
         session.status !== "cancelled" &&
         session.status !== "no_show",
     )
-    .reduce((sum, session) => sum + Math.round((session.rateCents * session.durationMin) / 60), 0);
+    .reduce((sum, session) => {
+      if (session.status === "late_cancel") {
+        return sum + (studio.students.find((student) => student.id === session.studentId)?.lateCancelFeeCents ?? 0);
+      }
+      return sum + Math.round((session.rateCents * session.durationMin) / 60);
+    }, 0);
 }
 
 export function thisWeekStart() {

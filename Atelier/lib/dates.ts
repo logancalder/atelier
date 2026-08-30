@@ -52,6 +52,11 @@ export function parseLocalDateTime(value: string) {
   return new Date(y, (m ?? 1) - 1, d ?? 1, hh ?? 0, mm ?? 0, 0, 0);
 }
 
+export function isWithinLateCancellationWindow(startsAt: string, now = new Date()) {
+  const millisecondsUntilSession = parseLocalDateTime(startsAt).getTime() - now.getTime();
+  return millisecondsUntilSession >= 0 && millisecondsUntilSession <= 24 * 60 * 60 * 1000;
+}
+
 export function toLocalDateTime(d: Date) {
   return `${toDateKey(d)}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }

@@ -11,7 +11,7 @@ import {
   updateStudio,
 } from "./db";
 import { dollarsToCents } from "./money";
-import { isValidRecurringSeriesInput } from "./dates";
+import { isValidRecurringSeriesInput, isWithinLateCancellationWindow } from "./dates";
 import type {
   PaymentKind,
   Session,
@@ -53,6 +53,8 @@ export async function saveSettings(formData: FormData) {
 export async function createStudent(formData: FormData) {
   await updateStudio((studio) => {
     const color = STUDENT_COLORS[studio.students.length % STUDENT_COLORS.length];
+    const hourlyRateCents = dollarsToCents(str(formData, "hourlyRate") || "0");
+    const lateCancelFee = str(formData, "lateCancelFee");
     studio.students.push({
       id: crypto.randomUUID(),
       name: str(formData, "name") || "Untitled student",
@@ -62,7 +64,8 @@ export async function createStudent(formData: FormData) {
       email: str(formData, "email"),
       phone: str(formData, "phone"),
       zelleName: str(formData, "zelleName"),
-      hourlyRateCents: dollarsToCents(str(formData, "hourlyRate") || "0"),
+      hourlyRateCents,
+      lateCancelFeeCents: lateCancelFee ? dollarsToCents(lateCancelFee) : hourlyRateCents,
       defaultDurationMin: num(formData, "defaultDurationMin", 60) || 60,
       status: "active",
       color,
@@ -86,6 +89,7 @@ export async function updateStudent(formData: FormData) {
     student.phone = str(formData, "phone");
     student.zelleName = str(formData, "zelleName");
     student.hourlyRateCents = dollarsToCents(str(formData, "hourlyRate") || "0");
+    student.lateCancelFeeCents = dollarsToCents(str(formData, "lateCancelFee") || "0");
     student.defaultDurationMin = num(formData, "defaultDurationMin", student.defaultDurationMin);
     student.status = (str(formData, "status") as StudentStatus) || student.status;
     student.profileNotes = String(formData.get("profileNotes") ?? student.profileNotes);
@@ -128,6 +132,7 @@ export async function createSession(formData: FormData) {
 }
 
 export async function updateSessionStatus(id: string, status: SessionStatus) {
+  if (status === "late_cancel") throw new Error("Use the late-cancellation action.");
   await updateStudio((studio) => {
     const session = findSession(studio, id);
     if (!session) return;
@@ -141,11 +146,27 @@ export async function updateSessionStatus(id: string, status: SessionStatus) {
   refresh();
 }
 
+export async function lateCancelSession(id: string) {
+  await updateStudio((studio) => {
+    const session = findSession(studio, id);
+    if (!session) return;
+    if (session.status !== "scheduled") throw new Error("Only scheduled sessions can be late-cancelled.");
+    if (!isWithinLateCancellationWindow(session.startsAt)) {
+      throw new Error("Late cancellation is available only within 24 hours before the session.");
+    }
+    session.status = "late_cancel";
+    ensureSessionPayment(studio, session);
+  });
+  refresh();
+}
+
 export async function deleteSession(id: string) {
   await updateStudio((studio) => {
     const session = findSession(studio, id);
     if (!session) return;
-    if (session.status !== "cancelled") throw new Error("Cancel the session before deleting it.");
+    if (session.status !== "cancelled" && session.status !== "late_cancel") {
+      throw new Error("Cancel the session before deleting it.");
+    }
     recordDeletedSession(studio, session);
     studio.sessions = studio.sessions.filter((item) => item.id !== id);
     studio.payments = studio.payments.filter((payment) => payment.sessionId !== id);
@@ -157,7 +178,7 @@ export async function deleteCancelledSessions(studentId: string) {
   await updateStudio((studio) => {
     if (!findStudent(studio, studentId)) throw new Error("Student not found.");
     const cancelled = studio.sessions.filter(
-      (session) => session.studentId === studentId && session.status === "cancelled",
+      (session) => session.studentId === studentId && (session.status === "cancelled" || session.status === "late_cancel"),
     );
     const cancelledIds = new Set(cancelled.map((session) => session.id));
     for (const session of cancelled) recordDeletedSession(studio, session);
@@ -235,6 +256,7 @@ export async function markPaymentReceived(id: string) {
   await updateStudio((studio) => {
     const payment = findPayment(studio, id);
     if (!payment) return;
+    if (payment.status === "cancelled") throw new Error("Cancelled payments cannot be marked received.");
     payment.status = "received";
     payment.receivedAt = new Date().toISOString();
   });
@@ -245,7 +267,8 @@ export async function markPaymentUnreceived(id: string) {
   await updateStudio((studio) => {
     const payment = findPayment(studio, id);
     if (!payment) return;
-    payment.status = "upcoming";
+    const session = payment.sessionId ? findSession(studio, payment.sessionId) : null;
+    payment.status = session?.status === "cancelled" ? "cancelled" : "upcoming";
     payment.receivedAt = null;
   });
   refresh();
