@@ -509,28 +509,23 @@
     const authPanel = document.createElement("section");
     authPanel.className = "sn-auth-panel";
     panel.classList.add("sn-disconnected");
-    authPanel.innerHTML = `<div class="sn-auth-brand"><span>A</span><strong>Atelier</strong></div><p class="sn-auth-eyebrow">YOUR PRIVATE WORKING DESK</p><h3>Welcome back.</h3><p class="sn-auth-intro">Coding practice and tutoring work, synced to your private account.</p><div class="sn-auth-providers"><button type="button" data-provider="google" aria-label="Continue with Google"><span class="sn-google">G</span> Continue with Google</button><button type="button" data-provider="github" aria-label="Continue with GitHub"><span class="sn-github">●</span> Continue with GitHub</button></div><div class="sn-auth-divider"><span>or</span></div><form><label>Email<input name="email" type="email" autocomplete="email" required></label><label>Password<input name="password" type="password" minlength="6" autocomplete="current-password" required></label><button type="submit" data-email-submit>Sign in</button></form><button type="button" class="sn-auth-mode">New here? Create an account</button><small class="sn-auth-error" role="alert"></small>`;
+    authPanel.innerHTML = `<div class="sn-auth-brand"><span>A</span><strong>Atelier</strong></div><p class="sn-auth-eyebrow">YOUR PRIVATE WORKING DESK</p><h3>Welcome back.</h3><p class="sn-auth-intro">Coding practice and tutoring work, synced to your private account.</p><div class="sn-auth-providers"><button type="button" data-provider="google" aria-label="Continue with Google"><span class="sn-google">G</span> Continue with Google</button><button type="button" data-provider="github" aria-label="Continue with GitHub"><span class="sn-github">●</span> Continue with GitHub</button><button type="button" data-provider="email" aria-label="Continue with email"><span aria-hidden="true">✉</span> Continue with email</button></div><small class="sn-auth-error" role="alert"></small>`;
     authPanel.querySelector(".sn-google").innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.2c0-.7-.1-1.5-.2-2.2H12v4.2h5.4a4.6 4.6 0 0 1-2 3v2.7h3.3c1.9-1.8 2.9-4.4 2.9-7.7Z"/><path fill="#34A853" d="M12 22c2.7 0 5-.9 6.7-2.4l-3.3-2.7c-.9.6-2 1-3.4 1a5.9 5.9 0 0 1-5.5-4H3.1v2.8A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.5 13.9a6 6 0 0 1 0-3.8V7.3H3.1a10 10 0 0 0 0 9.4l3.4-2.8Z"/><path fill="#EA4335" d="M12 6.1c1.5 0 2.8.5 3.9 1.5l2.9-2.8A9.7 9.7 0 0 0 3.1 7.3l3.4 2.8A5.9 5.9 0 0 1 12 6.1Z"/></svg>`;
     authPanel.querySelector(".sn-github").innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .7a11.5 11.5 0 0 0-3.6 22.4c.6.1.8-.2.8-.5v-2c-3.3.7-4-1.4-4-1.4-.5-1.4-1.3-1.8-1.3-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11.2 11.2 0 0 1 5.8 0c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.8 5.4-5.5 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.6.8.5A11.5 11.5 0 0 0 12 .7Z"/></svg>`;
     panel.querySelector("footer").before(authPanel);
-    let authMode = "signin";
     const authError = authPanel.querySelector(".sn-auth-error");
     async function authenticate(payload) {
       authPanel.classList.add("sn-auth-busy");
       authError.classList.add("sn-auth-progress");
-      authError.textContent = payload.provider === "email" ? "Signing in…" : `Opening ${payload.provider === "github" ? "GitHub" : "Google"} sign-in…`;
+      const providerName = payload.provider === "github" ? "GitHub" : payload.provider === "email" ? "email" : "Google";
+      authError.textContent = `Opening ${providerName} sign-in…`;
       let authWindowId;
       try {
-        if (payload.provider === "email") {
-          const result = await chrome.runtime.sendMessage({ type: "extension-auth", payload });
-          if (result?.error) throw new Error(result.error);
-        } else {
-          await globalThis.AtelierSync.pair(async (code) => {
-            const opened = await chrome.runtime.sendMessage({ type: "open-provider-auth", code, provider: payload.provider });
-            if (opened?.error) throw new Error(opened.error);
-            authWindowId = opened?.windowId;
-          });
-        }
+        await globalThis.AtelierSync.pair(async (code) => {
+          const opened = await chrome.runtime.sendMessage({ type: "open-provider-auth", code, provider: payload.provider });
+          if (opened?.error) throw new Error(opened.error);
+          authWindowId = opened?.windowId;
+        });
         await refresh();
       } catch (error) {
         authError.classList.remove("sn-auth-progress");
@@ -543,16 +538,6 @@
     authPanel.querySelector(".sn-auth-providers").addEventListener("click", (event) => {
       const provider = event.target.closest("button[data-provider]")?.dataset.provider;
       if (provider) void authenticate({ provider });
-    });
-    authPanel.querySelector("form").addEventListener("submit", (event) => {
-      event.preventDefault();
-      const data = new FormData(event.currentTarget);
-      void authenticate({ provider: "email", mode: authMode, email: String(data.get("email")), password: String(data.get("password")) });
-    });
-    authPanel.querySelector(".sn-auth-mode").addEventListener("click", (event) => {
-      authMode = authMode === "signin" ? "signup" : "signin";
-      authPanel.querySelector("[data-email-submit]").textContent = authMode === "signin" ? "Sign in" : "Create account";
-      event.currentTarget.textContent = authMode === "signin" ? "Create an account instead" : "Already have an account? Sign in";
     });
     const refresh = async () => {
       const connected = await globalThis.AtelierSync.connected();

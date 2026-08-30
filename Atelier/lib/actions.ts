@@ -11,6 +11,7 @@ import {
   updateStudio,
 } from "./db";
 import { dollarsToCents } from "./money";
+import { isValidRecurringSeriesInput } from "./dates";
 import type {
   PaymentKind,
   SessionPlace,
@@ -133,17 +134,24 @@ export async function updateSessionStatus(id: string, status: SessionStatus) {
 }
 
 export async function createSeries(formData: FormData) {
+  const weekday = num(formData, "weekday", -1);
+  const time = str(formData, "time");
+  const requestedDuration = str(formData, "durationMin");
+  const startDate = str(formData, "startDate");
+  const endDate = str(formData, "endDate");
   await updateStudio((studio) => {
     const student = findStudent(studio, str(formData, "studentId"));
     if (!student) return;
+    const durationMin = requestedDuration ? num(formData, "durationMin", 0) : student.defaultDurationMin || 60;
+    if (!isValidRecurringSeriesInput({ weekday, time, durationMin, startDate, endDate })) throw new Error("Invalid recurring session details.");
     studio.series.push({
       id: crypto.randomUUID(),
       studentId: student.id,
-      weekday: num(formData, "weekday", 1),
-      time: str(formData, "time") || "16:00",
-      durationMin: num(formData, "durationMin", student.defaultDurationMin) || 60,
-      startDate: str(formData, "startDate"),
-      endDate: str(formData, "endDate") || null,
+      weekday,
+      time,
+      durationMin,
+      startDate,
+      endDate: endDate || null,
       place: (str(formData, "place") as SessionPlace) || "online",
       locationNote: str(formData, "locationNote"),
       createdAt: new Date().toISOString(),

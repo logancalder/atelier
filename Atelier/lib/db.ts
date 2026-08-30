@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "fs";
 import path from "path";
-import { addDays, parseDateKey, parseLocalDateTime, toDateKey, toLocalDateTime, todayKey } from "./dates";
+import { addDays, alignDateToWeekday, isValidDateKey, parseDateKey, parseLocalDateTime, toDateKey, toLocalDateTime, todayKey } from "./dates";
 import { sessionAmount } from "./money";
 import type {
   Note,
@@ -89,13 +89,10 @@ function expandRecurring(studio: Studio) {
     const student = studio.students.find((item) => item.id === series.studentId);
     if (!student || student.status === "archived") continue;
 
-    let cursor = parseDateKey(series.startDate);
+    let cursor = alignDateToWeekday(series.startDate, series.weekday);
+    if (!cursor || (series.endDate && !isValidDateKey(series.endDate))) continue;
     const end = series.endDate ? parseDateKey(series.endDate) : horizon;
     const last = end < horizon ? end : horizon;
-
-    while (cursor.getDay() !== series.weekday) {
-      cursor = addDays(cursor, 1);
-    }
 
     while (cursor <= last) {
       const [hours, minutes] = series.time.split(":").map(Number);

@@ -14,9 +14,9 @@ The first linked provider that supplies a profile photo becomes the Atelier prof
 
 ## Chrome extension sign-in
 
-The NeetCode drawer signs in without navigating away from the problem. Email/password runs in the extension and Google/GitHub use Firebase's Manifest V3 offscreen-document flow.
+The NeetCode drawer opens Atelier's web sign-in in a small popup, then completes a one-time account pairing. Email/password, Google, and GitHub all use the same pairing boundary; Firebase credentials are never returned to extension code.
 
-After loading the unpacked extension, copy its ID from `chrome://extensions`. In Firebase Console → Authentication → Settings → Authorized domains, add `chrome-extension://YOUR_EXTENSION_ID`. Google and GitHub must also remain enabled under Authentication → Sign-in method.
+The extension uses Atelier's short-lived, user-approved web pairing flow, so no Chrome extension origin needs to be added as a Firebase authorized domain. Keep the desired Google, GitHub, and email/password providers enabled under Authentication → Sign-in method.
 
 For GitHub, create an OAuth app and use Firebase's displayed `/__/auth/handler` URL as its callback URL. Add `localhost` and your deployed Atelier domain to Authentication → Settings → Authorized domains.
 
@@ -57,6 +57,7 @@ extensionTokens/{sha256(token)}
   uid
   createdAt
   lastUsedAt
+  expiresAt
 ```
 
 This snapshot design mirrors the current local JSON model without lossy migrations and requires no composite indexes. It is appropriate for a private, single-owner desk. If either snapshot approaches Firestore's 1 MiB document limit, split it into `codingProblems/{problemKey}`, `students/{studentId}`, `sessions/{sessionId}`, and related subcollections.
@@ -65,7 +66,7 @@ The browser never receives Admin credentials. Firebase Auth ID tokens are accept
 
 ## Extension accounts
 
-Atelier Problem Notes does not embed Firebase or OAuth secrets. Choose **Connect account** in the extension popup; it opens an authenticated Atelier pairing page and issues a random, revocable extension token scoped to that Firebase UID. The raw token remains in `chrome.storage.local`; Firestore stores only its SHA-256 hash. Coding API requests without a valid session or extension token are rejected once Firebase is configured.
+Atelier Problem Notes does not embed Firebase or OAuth secrets. Choose **Connect account** in the extension popup; it opens an authenticated Atelier pairing page and issues a random, revocable 30-day extension token scoped to that Firebase UID. The raw token remains in `chrome.storage.local`; Firestore stores only its SHA-256 hash and expiry metadata. Coding API requests without a valid, unexpired session or extension token are rejected once Firebase is configured.
 
 The extension also partitions its offline Chrome cache by Firebase UID. Disconnecting revokes the token but preserves that account's offline notes. Pairing a different user selects a different cache, preventing NeetCode data from crossing accounts.
 

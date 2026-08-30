@@ -25,6 +25,26 @@ export function parseDateKey(key: string) {
   return new Date(y, (m ?? 1) - 1, d ?? 1);
 }
 
+export function isValidDateKey(key: string) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(key)
+    && Number.isFinite(parseDateKey(key).getTime())
+    && toDateKey(parseDateKey(key)) === key;
+}
+
+export function alignDateToWeekday(key: string, weekday: number) {
+  if (!isValidDateKey(key) || !Number.isInteger(weekday) || weekday < 0 || weekday > 6) return null;
+  const cursor = parseDateKey(key);
+  return addDays(cursor, (weekday - cursor.getDay() + 7) % 7);
+}
+
+export function isValidRecurringSeriesInput(input: { weekday: number; startDate: string; endDate: string; time: string; durationMin: number }) {
+  if (!Number.isInteger(input.weekday) || input.weekday < 0 || input.weekday > 6) return false;
+  if (!isValidDateKey(input.startDate) || (input.endDate && (!isValidDateKey(input.endDate) || input.endDate < input.startDate))) return false;
+  const time = input.time.match(/^(\d{2}):(\d{2})$/);
+  if (!time || Number(time[1]) > 23 || Number(time[2]) > 59) return false;
+  return Number.isInteger(input.durationMin) && input.durationMin >= 15 && input.durationMin <= 8 * 60;
+}
+
 export function parseLocalDateTime(value: string) {
   const [datePart, timePart = "00:00"] = value.split("T");
   const [y, m, d] = datePart.split("-").map(Number);
