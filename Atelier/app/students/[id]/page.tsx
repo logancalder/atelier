@@ -1,12 +1,13 @@
 import { Modal } from "@/components/forms";
-import { NoteCard, SeriesRow, SessionRow } from "@/components/rows";
+import { NoteCard, SeriesRow } from "@/components/rows";
 import { PaymentList } from "@/components/payment-list";
+import { SessionList } from "@/components/session-list";
 import { Shell } from "@/components/shell";
 import { NoteForm, PaymentForm, SeriesForm, SessionForm, StudentForm } from "@/components/studio-forms";
 import { Badge, Card, Empty } from "@/components/ui";
 import { formatMoney } from "@/lib/money";
 import { todayKey } from "@/lib/dates";
-import { readStudio, sortSessions } from "@/lib/db";
+import { readStudio } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { dataOwnerId } from "@/lib/auth";
 
@@ -16,7 +17,7 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
   const student = studio.students.find((item) => item.id === id);
   if (!student) notFound();
 
-  const sessions = sortSessions(studio.sessions.filter((session) => session.studentId === id)).reverse();
+  const sessions = studio.sessions.filter((session) => session.studentId === id);
   const payments = studio.payments
     .filter((payment) => payment.studentId === id)
     .sort((a, b) => b.dueDate.localeCompare(a.dueDate));
@@ -71,14 +72,20 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
             </div>
           </Card>
 
-        <div className="grid gap-x-16 gap-y-12 lg:grid-cols-2">
-          <Card className="content-section">
-            <h2 className="mb-3 font-serif text-2xl">Weekly series</h2>
-            {series.length ? series.map((item) => <SeriesRow key={item.id} series={item} student={student} />) : (
-              <p className="text-sm text-mute">No open recurring block.</p>
-            )}
-          </Card>
-          <Card className="content-section">
+        <div className="grid items-stretch gap-x-16 gap-y-12 lg:grid-cols-2">
+          <div className="flex min-w-0 flex-col gap-12">
+            <Card className="content-section">
+              <h2 className="mb-3 font-serif text-2xl">Weekly series</h2>
+              {series.length ? series.map((item) => <SeriesRow key={item.id} series={item} student={student} />) : (
+                <p className="text-sm text-mute">No open recurring block.</p>
+              )}
+            </Card>
+            <Card className="content-section flex flex-1 flex-col">
+              <h2 className="mb-3 font-serif text-2xl">Sessions</h2>
+              <SessionList sessions={sessions} student={student} pageSize={6} />
+            </Card>
+          </div>
+          <Card className="content-section h-full min-w-0">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="font-serif text-2xl">Zelle</h2>
               <Modal title="Log payment" label="Add" variant="ghost">
@@ -88,17 +95,6 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
             <PaymentList payments={payments} students={{ [student.id]: student }} zelleHandle={studio.settings.zelleHandle} defaultSort="due-desc" pageSize={8} emptyTitle="No payments logged" emptyBody="Payments for this student will appear here." />
           </Card>
         </div>
-
-          <Card className="content-section">
-            <h2 className="mb-3 font-serif text-2xl">Sessions</h2>
-            {sessions.length ? (
-              sessions.slice(0, 12).map((session) => (
-                <SessionRow key={session.id} session={session} student={student} />
-              ))
-            ) : (
-              <p className="text-sm text-mute">Nothing scheduled yet.</p>
-            )}
-          </Card>
 
           <Card className="content-section">
             <details className="quiet-disclosure">
