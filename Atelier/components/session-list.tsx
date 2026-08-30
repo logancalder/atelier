@@ -1,11 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { deleteCancelledSessions } from "@/lib/actions";
 import type { Session, Student } from "@/lib/types";
+import { ActionButton } from "./forms";
 import { SessionRow } from "./rows";
 import { Button, Empty, Select } from "./ui";
 
-type SortKey = "date-desc" | "date-asc" | "status";
+type SortKey = "date-nearest" | "date-farthest" | "status";
 
 const statusOrder: Record<Session["status"], number> = {
   scheduled: 0,
@@ -14,30 +16,41 @@ const statusOrder: Record<Session["status"], number> = {
   cancelled: 3,
 };
 
+function dayNumber(value: string) {
+  const [year, month, day] = value.slice(0, 10).split("-").map(Number);
+  return Date.UTC(year, month - 1, day) / 86_400_000;
+}
+
 export function SessionList({
   sessions,
   student,
+  today,
   pageSize = 6,
 }: {
   sessions: Session[];
   student: Student;
+  today: string;
   pageSize?: number;
 }) {
-  const [sort, setSort] = useState<SortKey>("date-desc");
+  const [sort, setSort] = useState<SortKey>("date-nearest");
   const [status, setStatus] = useState<Session["status"] | "all">("all");
   const [page, setPage] = useState(1);
+  const cancelledCount = sessions.filter((session) => session.status === "cancelled").length;
+  const todayNumber = dayNumber(today);
 
   const sorted = useMemo(() => {
     return sessions
       .filter((session) => status === "all" || session.status === status)
       .sort((a, b) => {
-        if (sort === "date-asc") return a.startsAt.localeCompare(b.startsAt);
         if (sort === "status") {
           return statusOrder[a.status] - statusOrder[b.status] || b.startsAt.localeCompare(a.startsAt);
         }
-        return b.startsAt.localeCompare(a.startsAt);
+        const aDistance = Math.abs(dayNumber(a.startsAt) - todayNumber);
+        const bDistance = Math.abs(dayNumber(b.startsAt) - todayNumber);
+        if (sort === "date-farthest") return bDistance - aDistance || b.startsAt.localeCompare(a.startsAt);
+        return aDistance - bDistance || b.startsAt.localeCompare(a.startsAt);
       });
-  }, [sessions, sort, status]);
+  }, [sessions, sort, status, todayNumber]);
 
   if (!sessions.length) {
     return <Empty title="No sessions yet" body="Scheduled and completed sessions for this student will appear here." />;
@@ -80,8 +93,8 @@ export function SessionList({
               setPage(1);
             }}
           >
-            <option value="date-desc">Date · newest</option>
-            <option value="date-asc">Date · oldest</option>
+            <option value="date-nearest">Date · closest to today</option>
+            <option value="date-farthest">Date · farthest from today</option>
             <option value="status">Status</option>
           </Select>
         </label>
@@ -102,9 +115,19 @@ export function SessionList({
         </div>
       )}
 
-      <div className="mt-4 flex min-h-9 items-center justify-between gap-3">
+      <div className="mt-4 flex min-h-9 flex-wrap items-center justify-between gap-3">
+        {cancelledCount ? (
+          <ActionButton
+            action={() => deleteCancelledSessions(student.id)}
+            confirmMessage={`Permanently delete all ${cancelledCount} cancelled session${cancelledCount === 1 ? "" : "s"} for ${student.name} and their payment records? This cannot be undone.`}
+            successMessage="All cancelled sessions permanently deleted"
+            variant="danger"
+          >
+            Remove all cancelled
+          </ActionButton>
+        ) : <span />}
         {totalPages > 1 ? (
-          <>
+          <div className="ml-auto flex items-center gap-3">
             <Button type="button" variant="ghost" disabled={currentPage === 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>
               ← Previous
             </Button>
@@ -114,9 +137,9 @@ export function SessionList({
             <Button type="button" variant="ghost" disabled={currentPage === totalPages} onClick={() => setPage((value) => Math.min(totalPages, value + 1))}>
               Next →
             </Button>
-          </>
+          </div>
         ) : (
-          <p className="ml-auto text-xs text-mute">{sorted.length} of {sessions.length} sessions</p>
+          <p className="text-xs text-mute">{sorted.length} of {sessions.length} sessions</p>
         )}
       </div>
     </div>

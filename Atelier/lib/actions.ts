@@ -14,8 +14,10 @@ import { dollarsToCents } from "./money";
 import { isValidRecurringSeriesInput } from "./dates";
 import type {
   PaymentKind,
+  Session,
   SessionPlace,
   SessionStatus,
+  Studio,
   StudentStatus,
 } from "./types";
 import { STUDENT_COLORS } from "./types";
@@ -31,6 +33,12 @@ function str(form: FormData, key: string) {
 function num(form: FormData, key: string, fallback = 0) {
   const value = Number.parseInt(str(form, key), 10);
   return Number.isFinite(value) ? value : fallback;
+}
+
+function recordDeletedSession(studio: Studio, session: Session) {
+  if (!session.seriesId) return;
+  const key = `${session.seriesId}:${session.startsAt}`;
+  if (!studio.deletedSessionKeys.includes(key)) studio.deletedSessionKeys.push(key);
 }
 
 export async function saveSettings(formData: FormData) {
@@ -138,12 +146,23 @@ export async function deleteSession(id: string) {
     const session = findSession(studio, id);
     if (!session) return;
     if (session.status !== "cancelled") throw new Error("Cancel the session before deleting it.");
-    if (session.seriesId) {
-      const key = `${session.seriesId}:${session.startsAt}`;
-      if (!studio.deletedSessionKeys.includes(key)) studio.deletedSessionKeys.push(key);
-    }
+    recordDeletedSession(studio, session);
     studio.sessions = studio.sessions.filter((item) => item.id !== id);
     studio.payments = studio.payments.filter((payment) => payment.sessionId !== id);
+  });
+  refresh();
+}
+
+export async function deleteCancelledSessions(studentId: string) {
+  await updateStudio((studio) => {
+    if (!findStudent(studio, studentId)) throw new Error("Student not found.");
+    const cancelled = studio.sessions.filter(
+      (session) => session.studentId === studentId && session.status === "cancelled",
+    );
+    const cancelledIds = new Set(cancelled.map((session) => session.id));
+    for (const session of cancelled) recordDeletedSession(studio, session);
+    studio.sessions = studio.sessions.filter((session) => !cancelledIds.has(session.id));
+    studio.payments = studio.payments.filter((payment) => !payment.sessionId || !cancelledIds.has(payment.sessionId));
   });
   refresh();
 }

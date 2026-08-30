@@ -13,6 +13,7 @@ import { dataOwnerId } from "@/lib/auth";
 
 export default async function StudentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const today = todayKey();
   const studio = readStudio(await dataOwnerId());
   const student = studio.students.find((item) => item.id === id);
   if (!student) notFound();
@@ -24,7 +25,7 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
   const notes = studio.notes
     .filter((note) => note.studentId === id)
     .sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.createdAt.localeCompare(a.createdAt));
-  const series = studio.series.filter((item) => item.studentId === id && (!item.endDate || item.endDate > todayKey()));
+  const series = studio.series.filter((item) => item.studentId === id && (!item.endDate || item.endDate > today));
   const owed = payments
     .filter((payment) => payment.status !== "received")
     .reduce((sum, payment) => sum + payment.amountCents, 0);
@@ -82,7 +83,7 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
             </Card>
             <Card className="content-section flex flex-1 flex-col">
               <h2 className="mb-3 font-serif text-2xl">Sessions</h2>
-              <SessionList sessions={sessions} student={student} pageSize={6} />
+              <SessionList sessions={sessions} student={student} today={today} pageSize={6} />
             </Card>
           </div>
           <Card className="content-section h-full min-w-0">
