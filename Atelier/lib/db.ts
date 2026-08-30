@@ -27,6 +27,7 @@ function emptyStudio(): Studio {
     students: [],
     series: [],
     sessions: [],
+    deletedSessionKeys: [],
     payments: [],
     notes: [],
   };
@@ -52,6 +53,7 @@ function loadRaw(ownerId = "local"): Studio {
     students: parsed.students ?? [],
     series: parsed.series ?? [],
     sessions: parsed.sessions ?? [],
+    deletedSessionKeys: parsed.deletedSessionKeys ?? [],
     payments: parsed.payments ?? [],
     notes: parsed.notes ?? [],
   };
@@ -80,9 +82,12 @@ function sessionKey(seriesId: string, startsAt: string) {
 function expandRecurring(studio: Studio) {
   const horizon = addDays(new Date(), 16 * 7);
   const existing = new Set(
-    studio.sessions
-      .filter((session) => session.seriesId)
-      .map((session) => sessionKey(session.seriesId as string, session.startsAt)),
+    [
+      ...studio.sessions
+        .filter((session) => session.seriesId)
+        .map((session) => sessionKey(session.seriesId as string, session.startsAt)),
+      ...studio.deletedSessionKeys,
+    ],
   );
 
   for (const series of studio.series) {

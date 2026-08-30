@@ -133,6 +133,21 @@ export async function updateSessionStatus(id: string, status: SessionStatus) {
   refresh();
 }
 
+export async function deleteSession(id: string) {
+  await updateStudio((studio) => {
+    const session = findSession(studio, id);
+    if (!session) return;
+    if (session.status !== "cancelled") throw new Error("Cancel the session before deleting it.");
+    if (session.seriesId) {
+      const key = `${session.seriesId}:${session.startsAt}`;
+      if (!studio.deletedSessionKeys.includes(key)) studio.deletedSessionKeys.push(key);
+    }
+    studio.sessions = studio.sessions.filter((item) => item.id !== id);
+    studio.payments = studio.payments.filter((payment) => payment.sessionId !== id);
+  });
+  refresh();
+}
+
 export async function createSeries(formData: FormData) {
   const weekday = num(formData, "weekday", -1);
   const time = str(formData, "time");

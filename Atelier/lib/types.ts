@@ -82,6 +82,7 @@ export type Studio = {
   students: Student[];
   series: RecurringSeries[];
   sessions: Session[];
+  deletedSessionKeys: string[];
   payments: Payment[];
   notes: Note[];
 };

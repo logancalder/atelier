@@ -38,6 +38,7 @@ users/{uid}/snapshots/studio
   students[]
   series[]
   sessions[]
+  deletedSessionKeys[]
   payments[]
   notes[]
   updatedAt

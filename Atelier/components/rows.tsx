@@ -1,6 +1,6 @@
 "use client";
 
-import { endSeries, markPaymentReceived, markPaymentUnreceived, toggleNotePin, deleteNote, updateSessionStatus } from "@/lib/actions";
+import { deleteSession, endSeries, markPaymentReceived, markPaymentUnreceived, toggleNotePin, deleteNote, updateSessionStatus } from "@/lib/actions";
 import { formatRange, formatShortDate, formatTime } from "@/lib/dates";
 import { formatMoney } from "@/lib/money";
 import type { Note, Payment, RecurringSeries, Session, Student } from "@/lib/types";
@@ -16,12 +16,28 @@ export function SessionChip({
   session: Session;
   student?: Student | null;
 }) {
+  if (session.status === "cancelled") {
+    return (
+      <div className="mb-2 border-l-2 border-line px-2 py-1.5 text-xs text-mute">
+        <Link href={`/students/${session.studentId}`} className="block line-through">
+          <span className="block font-medium">{formatTime(session.startsAt)}</span>
+          <span className="block">{student?.name ?? "Student"}</span>
+        </Link>
+        <ActionButton
+          successMessage="Cancelled session permanently deleted"
+          confirmMessage="Permanently delete this cancelled session? This cannot be undone."
+          variant="danger"
+          action={() => deleteSession(session.id)}
+        >
+          Delete permanently
+        </ActionButton>
+      </div>
+    );
+  }
   return (
     <Link
       href={`/students/${session.studentId}`}
-      className={`mb-1 block border-l-2 px-2 py-1.5 text-xs leading-snug transition-colors ${
-        session.status === "cancelled" ? "border-line text-mute line-through" : "border-[#8f806b] text-ink hover:bg-white/45"
-      }`}
+      className="mb-1 block border-l-2 border-[#8f806b] px-2 py-1.5 text-xs leading-snug text-ink transition-colors hover:bg-white/45"
     >
       <span className="block font-medium">{formatTime(session.startsAt)}</span>
       <span className="block">{student?.name ?? "Student"}</span>
@@ -66,6 +82,18 @@ export function SessionRow({
             <ActionButton successMessage="Session marked no-show" action={() => updateSessionStatus(session.id, "no_show")}>No-show</ActionButton>
             <ActionButton successMessage="Session cancelled" variant="danger" action={() => updateSessionStatus(session.id, "cancelled")}>
               Cancel
+            </ActionButton>
+          </>
+        ) : session.status === "cancelled" ? (
+          <>
+            <ActionButton successMessage="Session restored" action={() => updateSessionStatus(session.id, "scheduled")}>Restore</ActionButton>
+            <ActionButton
+              successMessage="Cancelled session permanently deleted"
+              confirmMessage="Permanently delete this cancelled session and its payment record? This cannot be undone."
+              variant="danger"
+              action={() => deleteSession(session.id)}
+            >
+              Delete permanently
             </ActionButton>
           </>
         ) : (

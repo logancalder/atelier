@@ -87,11 +87,13 @@ export function ActionButton({
   children,
   variant = "ghost",
   successMessage = "Updated",
+  confirmMessage,
 }: {
   action: () => Promise<void>;
   children: ReactNode;
   variant?: "primary" | "ghost" | "danger" | "quiet";
   successMessage?: string;
+  confirmMessage?: string;
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -100,6 +102,7 @@ export function ActionButton({
       type="button"
       variant={variant}
       onClick={async () => {
+        if (confirmMessage && !window.confirm(confirmMessage)) return;
         try {
           await action();
           toast.show(successMessage);
