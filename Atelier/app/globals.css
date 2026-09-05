@@ -57,6 +57,7 @@ body {
 .prova-table td:nth-child(2) a { display: block; color: var(--ink); font-family: var(--font-serif-display); font-size: .86rem; line-height: 1.2; }
 .prova-problem-cell { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
 .prova-edit-visible { display: inline-flex; flex: none; border: 1px solid var(--line); border-radius: 4px; padding: .28rem .45rem; color: var(--mute); background: rgba(255,255,255,.7); font-size: .64rem; }
+.prova-site-label { display: inline-flex; margin-right: .45rem; border-radius: 3px; padding: .16rem .28rem; color: #526d4c; background: #e7efe4; font-family: var(--font-sans-body); font-size: .55rem; font-weight: 700; letter-spacing: .08em; vertical-align: .08rem; }
 .prova-table td:nth-child(2) a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .prova-table td small { display: block; max-width: 34rem; margin-top: .2rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .prova-date { white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -71,7 +72,7 @@ body {
 .prova-grid article > div { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .9rem; }.prova-grid article > div span { padding: .25rem .45rem; border-radius: 999px; color: var(--mute); background: #ebe9e3; font-size: .65rem; }
 .prova-grid article > p:not(.metric-label) { margin: 1rem 0; color: var(--mute); font-size: .78rem; line-height: 1.55; }.prova-grid article > button { align-self: flex-start; margin-top: auto; }
 .prova-empty { padding: 5rem 1rem; text-align: center; }.prova-empty > span { display: grid; width: 3rem; height: 3rem; margin: 0 auto 1rem; place-items: center; border: 1px solid var(--line); border-radius: 50%; font-family: var(--font-serif-display); }.prova-empty h2 { font-family: var(--font-serif-display); font-size: 1.5rem; }.prova-empty p { margin-top: .35rem; color: var(--mute); font-size: .8rem; }
-.prova-dialog-backdrop { position: fixed; z-index: 1000; inset: 0; display: grid; padding: clamp(.75rem,3vw,2rem); place-items: center; background: rgba(25,27,24,.32); backdrop-filter: blur(8px); animation: backdrop-in 220ms ease both; }
+.prova-dialog-backdrop { position: fixed; z-index: 1000; inset: 0; display: grid; overflow: hidden; overscroll-behavior: contain; padding: clamp(.75rem,3vw,2rem); place-items: center; background: rgba(25,27,24,.48); animation: backdrop-in 220ms ease both; }
 .prova-dialog { width: min(44rem,100%); max-height: calc(100dvh - clamp(1.5rem,6vw,4rem)); overflow: auto; overscroll-behavior: contain; border: 1px solid rgba(55,53,47,.18); border-radius: 12px; padding: clamp(1.15rem,3vw,1.75rem); background: #f8f6f1; box-shadow: 0 30px 90px rgba(27,27,24,.28), 0 2px 12px rgba(27,27,24,.1); animation: dialog-in 300ms cubic-bezier(.22,1,.36,1) both; }
 .prova-dialog > header,.prova-dialog > footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }.prova-dialog > header { margin-bottom: 1.3rem; }.prova-dialog > header h2 { margin-top: .2rem; font-family: var(--font-serif-display); font-size: 1.8rem; }.prova-dialog > header > button { border: 0; background: transparent; font-family: var(--font-serif-display); font-size: 1.5rem; }
 .prova-import-panel { display: grid; gap: .45rem; margin: 0 0 1.25rem; border: 1px solid var(--line); border-radius: 8px; padding: .9rem 1rem; background: rgba(255,255,255,.52); }
@@ -79,6 +80,7 @@ body {
 .prova-import-panel select { width: 100%; min-height: 2.7rem; border: 1px solid var(--line); border-radius: 5px; padding: .6rem .75rem; color: var(--ink); background: #fff; font: .8rem/1.4 var(--font-sans-body); letter-spacing: normal; text-transform: none; }
 .prova-import-panel p { color: var(--mute); font-size: .7rem; line-height: 1.45; }
 .prova-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }.prova-form-grid > label { display: grid; gap: .35rem; color: var(--mute); font-size: .64rem; font-weight: 650; letter-spacing: .11em; text-transform: uppercase; }.prova-form-grid .wide { grid-column: 1/-1; }.prova-form-grid input,.prova-form-grid select,.prova-form-grid textarea { padding: .65rem .75rem; text-transform: none; letter-spacing: normal; }.prova-form-grid textarea { min-height: 7rem; resize: vertical; }
+.prova-form-grid label > small { font-size: .62rem; font-weight: 500; letter-spacing: normal; text-transform: none; }.prova-form-grid .prova-field-error { color: #98483f; }
 .prova-form-grid fieldset { display: flex; flex-wrap: wrap; gap: .5rem 1rem; border: 0; }.prova-form-grid legend { margin-bottom: .5rem; color: var(--mute); font-size: .64rem; font-weight: 650; letter-spacing: .11em; text-transform: uppercase; }.prova-form-grid .prova-check { display: flex; align-items: center; gap: .4rem; color: var(--ink); font-size: .74rem; text-transform: none; letter-spacing: normal; }.prova-form-grid .prova-check input { width: 1rem; accent-color: #526d4c; }
 .prova-dialog > footer { margin-top: 1.4rem; }.prova-dialog > footer > div { display: flex; gap: .5rem; }.prova-dialog .prova-danger { border-color: #dfc4c0; color: #98483f; background: #f5e8e5; }
 @media(max-width:1000px){.prova-stats{grid-template-columns:repeat(2,1fr)}.prova-stats>div{border-left:0!important;border-bottom:1px solid var(--line)}.prova-progress{grid-column:1/-1}.prova-controls{grid-template-columns:1fr 1fr}.prova-search{grid-column:1/-1}.prova-view{justify-self:start}}
@@ -156,9 +158,19 @@ textarea {
 .problem-card-actions { display: flex; flex: none; align-items: center; gap: .5rem; }
 .problem-delete { display: flex; align-items: center; gap: .5rem; }
 .problem-delete button { padding: .3rem .55rem; font-size: .75rem; }
+.problem-edit-button { padding: .3rem .55rem !important; font-size: .75rem !important; }
 .problem-delete span { max-width: 15rem; color: #9b4a3c; font-size: .72rem; }
 .problem-badges { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .85rem; }
 .problem-notes { max-width: 56rem; margin-top: 1rem; white-space: pre-wrap; font-size: .9rem; line-height: 1.65; }
+.coding-edit-dialog { width: min(42rem, 100%); max-height: min(46rem, calc(100dvh - 2rem)); }
+.coding-edit-dialog .prova-form-grid > label,
+.coding-edit-dialog .prova-form-grid > .wide > label { align-content: start; }
+.coding-edit-dialog .prova-form-grid input,
+.coding-edit-dialog .prova-form-grid select { min-height: 2.8rem; }
+.coding-auto-count { display: grid; align-content: start; gap: .35rem; }
+.coding-auto-count > span { color: var(--mute); font-size: .64rem; font-weight: 650; letter-spacing: .11em; text-transform: uppercase; }
+.coding-auto-count button { width: 100%; min-height: 2.55rem; }
+.coding-edit-error { margin-top: 1rem; color: #98483f; font-size: .78rem; }
 .activity-section { margin-bottom: 3.5rem; }
 .activity-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 1.5rem; margin-bottom: 1.25rem; }
 .activity-heading > p { color: var(--mute); font-size: .75rem; }
@@ -659,8 +671,7 @@ textarea {
 }
 
 .app-dialog::backdrop {
-  background: rgba(43, 40, 35, 0.34);
-  backdrop-filter: blur(5px);
+  background: rgba(43, 40, 35, 0.48);
   animation: backdrop-in 220ms ease both;
 }
 
@@ -846,6 +857,59 @@ textarea {
 @keyframes auth-spin { to { transform: rotate(360deg); } }
 
 .payment-page { animation: list-enter 220ms ease both; }
+
+/* Shared interaction motion: exits, progressive result updates, removals, and button feedback. */
+.prova-dialog-backdrop[data-closing] { animation: backdrop-out 180ms ease both; pointer-events: none; }
+.prova-dialog-backdrop[data-closing] .prova-dialog { animation: dialog-out 180ms cubic-bezier(.4,0,1,1) both; }
+.app-dialog[data-closing]::backdrop { animation: backdrop-out 180ms ease both; }
+.app-dialog[data-closing] .dialog-panel { animation: dialog-out 180ms cubic-bezier(.4,0,1,1) both; }
+
+.payment-page > *,
+[data-motion-item],
+.prova-table tbody tr,
+.prova-grid > article,
+.problem-grid > .problem-card {
+  animation: motion-item-in 280ms cubic-bezier(.22,1,.36,1) both;
+}
+.payment-page > :nth-child(2),.prova-table tbody tr:nth-child(2),.prova-grid > article:nth-child(2),.problem-grid > .problem-card:nth-child(2){animation-delay:28ms}
+.payment-page > :nth-child(3),.prova-table tbody tr:nth-child(3),.prova-grid > article:nth-child(3),.problem-grid > .problem-card:nth-child(3){animation-delay:56ms}
+.payment-page > :nth-child(4),.prova-table tbody tr:nth-child(4),.prova-grid > article:nth-child(4),.problem-grid > .problem-card:nth-child(4){animation-delay:84ms}
+.payment-page > :nth-child(5),.prova-table tbody tr:nth-child(5),.prova-grid > article:nth-child(5),.problem-grid > .problem-card:nth-child(5){animation-delay:112ms}
+.payment-page > :nth-child(6),.prova-table tbody tr:nth-child(6),.prova-grid > article:nth-child(6),.problem-grid > .problem-card:nth-child(6){animation-delay:140ms}
+.payment-page > :nth-child(n+7),.prova-table tbody tr:nth-child(n+7),.prova-grid > article:nth-child(n+7),.problem-grid > .problem-card:nth-child(n+7){animation-delay:168ms}
+
+[data-motion-item],.payment-page > * { transform-origin: center top; }
+[data-motion-item].is-removing,
+.payment-page > *.is-removing,
+article.is-removing,
+tr.is-removing {
+  pointer-events: none;
+  animation: motion-item-out 190ms cubic-bezier(.4,0,1,1) both !important;
+}
+
+.button-base { position: relative; isolation: isolate; overflow: hidden; }
+.button-base::before {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  z-index: -1;
+  width: 130%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: currentColor;
+  content: "";
+  opacity: 0;
+  transform: translate(-50%,-50%) scale(0);
+  transition: opacity 300ms ease,transform 300ms ease;
+}
+.button-base:active:not(:disabled)::before { opacity: .08; transform: translate(-50%,-50%) scale(1); transition-duration: 80ms; }
+.button-base[data-busy] { cursor: progress; animation: button-busy 900ms ease-in-out infinite alternate; }
+.prova-sort:active span,.ledger-tabs button:active span { transform: translateY(1px); }
+
+@keyframes dialog-out { to { opacity: 0; transform: translateY(8px) scale(.985); } }
+@keyframes backdrop-out { to { opacity: 0; } }
+@keyframes motion-item-in { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes motion-item-out { to { opacity: 0; transform: translateX(10px) scale(.985); } }
+@keyframes button-busy { from { opacity: .64; } to { opacity: .92; } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }

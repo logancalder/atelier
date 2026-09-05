@@ -133,7 +133,7 @@ export function PaymentList({
         </label>
       </div>
 
-      {visible.length ? <div className="payment-page" key={`${sort}-${currentPage}`}>
+      {visible.length ? <div className="payment-page" key={`${query}-${studentId}-${kind}-${sort}-${currentPage}`}>
         {visible.map((payment) => (
           <PaymentRow
             key={payment.id}

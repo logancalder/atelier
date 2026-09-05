@@ -116,7 +116,10 @@ function openEditor(key) {
   const display = groups.find(({ parent }) => parent.key === key)?.parent || raw;
   document.getElementById("edit-key").value = key; document.getElementById("edit-title").textContent = display.title;
   const count = document.getElementById("edit-count"); count.value = submissionCount(raw); count.dataset.automatic = Number.isInteger(raw.submissionCountOverride) ? "false" : "true";
-  document.getElementById("edit-auto-count").textContent = raw.submissions?.length || 0; document.getElementById("edit-hints").checked = Boolean(raw.neededHints); document.getElementById("edit-understand").checked = Boolean(raw.dontUnderstand); document.getElementById("edit-notes").value = raw.notes || ""; document.getElementById("edit-dialog").showModal();
+  document.getElementById("edit-auto-count").textContent = raw.submissions?.length || 0;
+  const secondsInput = document.getElementById("edit-seconds");
+  secondsInput.value = raw.seconds > 0 ? (raw.seconds / 60).toFixed(2) : "";
+  document.getElementById("edit-hints").checked = Boolean(raw.neededHints); document.getElementById("edit-understand").checked = Boolean(raw.dontUnderstand); document.getElementById("edit-notes").value = raw.notes || ""; document.getElementById("edit-dialog").showModal();
 }
 
 async function saveEditor() {
@@ -124,6 +127,13 @@ async function saveEditor() {
   const countInput = document.getElementById("edit-count"), count = Number(countInput.value); if (!Number.isInteger(count) || count < 0) return;
   record.submissionCountOverride = countInput.dataset.automatic === "true" ? null : count;
   record.holeInOne = record.submissionCountOverride === null ? record.submissions?.length === 1 && Boolean(record.submissions[0]?.accepted) : count === 1;
+  const secondsInput = document.getElementById("edit-seconds");
+  if (secondsInput.value) {
+    const minutes = parseFloat(secondsInput.value);
+    if (!isNaN(minutes) && minutes >= 0) {
+      record.seconds = Math.round(minutes * 60);
+    }
+  }
   record.neededHints = document.getElementById("edit-hints").checked; record.dontUnderstand = document.getElementById("edit-understand").checked; record.notes = document.getElementById("edit-notes").value; record.updatedAt = new Date().toISOString();
   await persist("Changes saved"); document.getElementById("edit-dialog").close();
 }

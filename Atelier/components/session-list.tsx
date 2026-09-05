@@ -123,6 +123,7 @@ export function SessionList({
             action={() => deleteCancelledSessions(student.id)}
             confirmMessage={`Permanently delete all ${cancelledCount} cancelled session${cancelledCount === 1 ? "" : "s"} for ${student.name} and their payment records? This cannot be undone.`}
             successMessage="All cancelled sessions permanently deleted"
+            removalSelector='[data-session-status="cancelled"],[data-session-status="late_cancel"]'
             variant="danger"
           >
             Remove all cancelled

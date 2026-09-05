@@ -14,6 +14,8 @@ export function AuthForm({ destination = "/coding" }: { destination?: string }) 
   const [busy, setBusy] = useState(false);
   const [busyMessage, setBusyMessage] = useState("");
   const [pendingCredential, setPendingCredential] = useState<AuthCredential | null>(null);
+  const [pendingEmail, setPendingEmail] = useState("");
+  const [email, setEmail] = useState("");
 
   async function finish(credential: UserCredential) {
     setBusyMessage("Securing your Atelier session…");
@@ -38,18 +40,29 @@ export function AuthForm({ destination = "/coding" }: { destination?: string }) 
     setBusy(true); setError("");
     setBusyMessage(progressMessage);
     try {
-      const credential = await action();
+      let credential = await action();
       if (pendingCredential && !credential.user.providerData.some((provider) => provider.providerId === pendingCredential.providerId)) {
-        await linkWithCredential(credential.user, pendingCredential);
+        const signedInEmail = credential.user.email?.trim().toLowerCase() || "";
+        if (pendingEmail && signedInEmail !== pendingEmail) {
+          await signOut(clientAuth());
+          throw new Error(`Sign in to ${pendingEmail} to finish linking these accounts.`);
+        }
+        setBusyMessage("Linking both sign-in methods…");
+        credential = await linkWithCredential(credential.user, pendingCredential);
         setPendingCredential(null);
+        setPendingEmail("");
       }
       await finish(credential);
     } catch (caught) {
       const authError = caught as AuthError;
       const linkable = duplicateCredential || GoogleAuthProvider.credentialFromError(authError) || GithubAuthProvider.credentialFromError(authError);
       if ((authError.code === "auth/account-exists-with-different-credential" || authError.code === "auth/email-already-in-use") && linkable) {
+        const collisionEmail = typeof authError.customData?.email === "string" ? authError.customData.email.trim().toLowerCase() : email.trim().toLowerCase();
         setPendingCredential(linkable);
-        setError("That email already has an Atelier account. Sign in below with the service or password you used first; Atelier will then link this new method to the same account.");
+        setPendingEmail(collisionEmail);
+        if (collisionEmail) setEmail(collisionEmail);
+        setMode("signin");
+        setError("That email already has an Atelier account. Sign in with its existing Google, GitHub, or password method and Atelier will securely link the new method to the same account.");
       } else {
         setError(caught instanceof Error ? caught.message.replace(/^Firebase:\s*/, "") : "Sign-in failed.");
       }
@@ -66,9 +79,9 @@ export function AuthForm({ destination = "/coding" }: { destination?: string }) 
       <button className="provider-button" onClick={() => run(() => signInWithPopup(clientAuth(), new GithubAuthProvider()), undefined, "Waiting for GitHub sign-in…")} disabled={busy}><ProviderIcon provider="github.com" />Continue with GitHub</button>
       {busy ? <p className="auth-progress" role="status" aria-live="polite"><span className="auth-spinner" aria-hidden="true" />{busyMessage}</p> : null}
       <div className="auth-divider"><span>or</span></div>
-      {pendingCredential ? <p className="auth-link-note">One more step: sign in with your original method to link both sign-ins.</p> : null}
-      <form onSubmit={(event) => { event.preventDefault(); const data = new FormData(event.currentTarget); const email = String(data.get("email")); const password = String(data.get("password")); void run(() => mode === "signup" ? createUserWithEmailAndPassword(clientAuth(), email, password) : signInWithEmailAndPassword(clientAuth(), email, password), mode === "signup" ? EmailAuthProvider.credential(email, password) : undefined); }}>
-        <label>Email<input name="email" type="email" autoComplete="email" required /></label>
+      {pendingCredential ? <p className="auth-link-note">Finish linking{pendingEmail ? ` ${pendingEmail}` : ""}: sign in once with the account’s existing method. Both options will then open the same Atelier workspace.</p> : null}
+      <form onSubmit={(event) => { event.preventDefault(); const data = new FormData(event.currentTarget); const password = String(data.get("password")); void run(() => mode === "signup" ? createUserWithEmailAndPassword(clientAuth(), email, password) : signInWithEmailAndPassword(clientAuth(), email, password), mode === "signup" ? EmailAuthProvider.credential(email, password) : undefined); }}>
+        <label>Email<input name="email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>
         <label>Password<input name="password" type="password" minLength={6} autoComplete={mode === "signup" ? "new-password" : "current-password"} required /></label>
         <button className="auth-submit" type="submit" disabled={busy}>{busy ? "Please wait…" : mode === "signup" ? "Create account" : "Sign in"}</button>
       </form>

@@ -11,9 +11,12 @@ export function DeleteCodingProblemButton({ problemKey, title }: { problemKey: s
 
   async function remove() {
     if (!window.confirm('Delete "' + title + '" from your coding notebook?')) return;
+    const card = document.querySelector<HTMLElement>(`[data-problem-key="${CSS.escape(problemKey)}"]`);
     setBusy(true);
     setError("");
     try {
+      card?.classList.add("is-removing");
+      await new Promise((resolve) => window.setTimeout(resolve, 190));
       const response = await fetch("/api/coding/problems", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
@@ -24,6 +27,7 @@ export function DeleteCodingProblemButton({ problemKey, title }: { problemKey: s
       if (!response.ok) throw new Error(result.error || "Could not delete the problem.");
       router.refresh();
     } catch (caught) {
+      card?.classList.remove("is-removing");
       setError(caught instanceof Error ? caught.message : "Could not delete the problem.");
       setBusy(false);
     }

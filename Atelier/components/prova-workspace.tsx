@@ -5,9 +5,9 @@ import { createPortal } from "react-dom";
 import type { ProvaProblem } from "@/lib/prova";
 import type { CodingProblem } from "@/lib/types";
 
-type SortKey = "problemNo" | "title" | "difficulty" | "category" | "solved" | "dateSolved" | "solvedFirstTime" | "solvedSub20";
+type SortKey = "problemNo" | "title" | "difficulty" | "category" | "solved" | "dateSolved" | "solvedFirstTime" | "solvedSub20" | "solveTime";
 const PAGE_SIZE = 25;
-const emptyProblem = (): ProvaProblem => ({ id: Date.now(), problemNo: "", title: "", category: "", difficulty: "", url: "", dateSolved: "", solvedFirstTime: "", holeInOne: "", solvedSub20: "", isCompetent: "", notes: "", solved: false });
+const emptyProblem = (): ProvaProblem => ({ id: Date.now(), problemNo: "", title: "", category: "", difficulty: "", url: "", dateSolved: "", solvedFirstTime: "", holeInOne: "", solvedSub20: "", isCompetent: "", notes: "", solved: false, solveTime: "", site: "" });
 const exactTitle = (title: string) => title.trim().replace(/\s+/g, " ").toLocaleLowerCase();
 
 function firstAcceptedDate(problem: CodingProblem) {
@@ -16,6 +16,22 @@ function firstAcceptedDate(problem: CodingProblem) {
     .map((submission) => submission.at)
     .sort()[0]
     ?.slice(0, 10) ?? "";
+}
+
+function detectSite(url: string): string {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    if (hostname === "leetcode.com" || hostname === "www.leetcode.com") return "LC";
+    if (hostname === "neetcode.io" || hostname === "www.neetcode.io") return "NC";
+  } catch { /* A partial URL has no site label yet. */ }
+  return "";
+}
+
+async function scrapeUrlMetadata(url: string): Promise<{ title: string; problemNo: string; site: string }> {
+  const response = await fetch(`/api/scrape-problem?url=${encodeURIComponent(url)}`);
+  const result = await response.json().catch(() => ({})) as { title?: string; problemNo?: string; site?: string; error?: string };
+  if (!response.ok) throw new Error(result.error || "Problem details could not be loaded.");
+  return { title: result.title || "", problemNo: result.problemNo || "", site: result.site || detectSite(url) };
 }
 
 function codingProblemUrl(problem: CodingProblem) {
@@ -27,13 +43,14 @@ function codingToProva(problem: CodingProblem): ProvaProblem {
   const submissionCount = Number.isInteger(problem.submissionCountOverride)
     ? problem.submissionCountOverride as number
     : problem.submissions.length;
+  const url = codingProblemUrl(problem);
   return {
     id: Date.now(),
     problemNo: problem.leetcodeFrontendId || "",
     title: problem.title,
     category: problem.tags?.[0] || "",
     difficulty: problem.difficulty || "",
-    url: codingProblemUrl(problem),
+    url,
     dateSolved,
     solvedFirstTime: dateSolved ? (submissionCount === 1 ? "Y" : "N") : "",
     holeInOne: dateSolved ? (problem.holeInOne ? "Y" : "N") : "",
@@ -41,6 +58,8 @@ function codingToProva(problem: CodingProblem): ProvaProblem {
     isCompetent: "",
     notes: problem.notes,
     solved: Boolean(dateSolved),
+    solveTime: problem.seconds > 0 ? String(Math.round(problem.seconds / 60)) : "",
+    site: detectSite(url),
   };
 }
 
@@ -57,7 +76,7 @@ function download(contents: string, name: string, type: string) {
 }
 
 function csv(problems: ProvaProblem[]) {
-  const fields: (keyof ProvaProblem)[] = ["id", "problemNo", "title", "category", "difficulty", "url", "dateSolved", "solvedFirstTime", "holeInOne", "solvedSub20", "isCompetent", "notes", "solved"];
+  const fields: (keyof ProvaProblem)[] = ["id", "problemNo", "title", "category", "difficulty", "url", "dateSolved", "solvedFirstTime", "holeInOne", "solvedSub20", "isCompetent", "notes", "solved", "solveTime", "site"];
   const cell = (value: unknown) => `"${String(value ?? "").replaceAll('"', '""')}"`;
   return [fields.join(","), ...problems.map((problem) => fields.map((field) => cell(problem[field])).join(","))].join("\n");
 }
@@ -70,7 +89,6 @@ export function ProvaWorkspace({ seed }: { seed: ProvaProblem[] }) {
   const [category, setCategory] = useState("all");
   const [view, setView] = useState<"table" | "cards">("table");
   const [editing, setEditing] = useState<ProvaProblem | null>(null);
-  const [editingRow, setEditingRow] = useState<number | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>("problemNo");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(1);
@@ -114,6 +132,7 @@ export function ProvaWorkspace({ seed }: { seed: ProvaProblem[] }) {
   const pageCount = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount);
   const paginated = visible.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const resultMotionKey = `${query}-${status}-${difficulty}-${category}-${sortKey}-${sortDirection}-${currentPage}-${view}`;
 
   const solved = problems.filter((problem) => problem.solved).length;
   const firstTry = problems.filter((problem) => problem.solvedFirstTime === "Y").length;
@@ -138,7 +157,6 @@ export function ProvaWorkspace({ seed }: { seed: ProvaProblem[] }) {
   async function save(problem: ProvaProblem) {
     const next = problems.some((item) => item.id === problem.id) ? problems.map((item) => item.id === problem.id ? problem : item) : [...problems, problem];
     await persist(next);
-    setEditing(null);
   }
 
   function changeSort(key: SortKey) {
@@ -196,47 +214,70 @@ export function ProvaWorkspace({ seed }: { seed: ProvaProblem[] }) {
         </div>
 
     {saveError ? <p className="prova-save-error" role="alert">{saveError}</p> : null}
-    {view === "table" ? <div className="prova-table-wrap"><table className="prova-table"><thead><tr><th>{sortButton("problemNo", "#")}</th><th>{sortButton("title", "Problem")}</th><th>{sortButton("difficulty", "Difficulty")}</th><th>{sortButton("category", "Category")}</th><th>{sortButton("solved", "Solved")}</th><th>{sortButton("dateSolved", "Solved on")}</th><th>{sortButton("solvedFirstTime", "First try")}</th><th>{sortButton("solvedSub20", "Sub 20")}</th><th /></tr></thead><tbody>{paginated.map((problem) => <EditableProblemRow key={problem.id} problem={problem} editing={editingRow === problem.id} onEdit={() => setEditingRow(problem.id)} onCancel={() => setEditingRow(null)} onSave={async (next) => { await save(next); setEditingRow(null); }} onMore={() => setEditing(problem)} />)}</tbody></table></div>
-      : <div className="prova-grid">{paginated.map((problem) => <article key={problem.id}><p className="metric-label">#{problem.problemNo} · {problem.category}</p><h2><a href={problem.url || undefined} target="_blank" rel="noreferrer">{problem.title}</a></h2><div><span>{problem.difficulty}</span><span>{problem.solved ? "Solved" : "Open"}</span>{problem.dateSolved ? <span>Solved {displayDate(problem.dateSolved)}</span> : null}{problem.solvedFirstTime === "Y" ? <span>First try</span> : null}</div><p>{problem.notes || "No notes yet."}</p><button onClick={() => setEditing(problem)}>Edit problem</button></article>)}</div>}
+    {view === "table" ? <div className="prova-table-wrap"><table className="prova-table"><thead><tr><th>{sortButton("problemNo", "#")}</th><th>{sortButton("title", "Problem")}</th><th>{sortButton("difficulty", "Difficulty")}</th><th>{sortButton("category", "Category")}</th><th>{sortButton("solved", "Solved")}</th><th>{sortButton("dateSolved", "Solved on")}</th><th>{sortButton("solvedFirstTime", "First try")}</th><th>{sortButton("solvedSub20", "Sub 20")}</th><th>{sortButton("solveTime", "Time")}</th><th /></tr></thead><tbody key={resultMotionKey}>{paginated.map((problem) => <ProblemRow key={problem.id} problem={problem} onEdit={() => setEditing(problem)} />)}</tbody></table></div>
+      : <div className="prova-grid" key={resultMotionKey}>{paginated.map((problem) => <article data-motion-item key={problem.id}><p className="metric-label">{problem.site ? `[${problem.site}] ` : ""}#{problem.problemNo} · {problem.category}</p><h2><a href={problem.url || undefined} target="_blank" rel="noreferrer">{problem.title}</a></h2><div><span>{problem.difficulty}</span><span>{problem.solved ? "Solved" : "Open"}</span>{problem.dateSolved ? <span>Solved {displayDate(problem.dateSolved)}</span> : null}{problem.solvedFirstTime === "Y" ? <span>First try</span> : null}{problem.solveTime ? <span>{problem.solveTime}m</span> : null}</div><p>{problem.notes || "No notes yet."}</p><button onClick={() => setEditing(problem)}>Edit problem</button></article>)}</div>}
     {visible.length ? <nav className="prova-pagination" aria-label="Prova pages"><button disabled={currentPage === 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>Previous</button><span>{currentPage} / {pageCount}</span><button disabled={currentPage === pageCount} onClick={() => setPage((value) => Math.min(pageCount, value + 1))}>Next</button></nav> : null}
     {!visible.length ? <div className="prova-empty"><span>A</span><h2>No problems found.</h2><p>Try clearing a filter or add a new problem.</p></div> : null}
 
       </div>
     </div>
-    {editing ? <ProblemDialog problem={editing} categories={categories} imports={unmatchedCodingProblems} importsLoading={codingLoading} importsError={codingError} onClose={() => setEditing(null)} onSave={save} onDelete={() => { void persist(problems.filter((item) => item.id !== editing.id)); setEditing(null); }} /> : null}
+    {editing ? <ProblemDialog problem={editing} categories={categories} imports={unmatchedCodingProblems} importsLoading={codingLoading} importsError={codingError} onClose={() => setEditing(null)} onSave={save} onDelete={() => persist(problems.filter((item) => item.id !== editing.id))} /> : null}
   </>;
 }
 
-function EditableProblemRow({ problem, editing, onEdit, onCancel, onSave, onMore }: { problem: ProvaProblem; editing: boolean; onEdit: () => void; onCancel: () => void; onSave: (problem: ProvaProblem) => Promise<void>; onMore: () => void }) {
-  const [draft, setDraft] = useState(problem);
-  const update = (field: keyof ProvaProblem, value: string | boolean) => setDraft((current) => ({ ...current, [field]: value }));
-
-  if (!editing) {
-    return <tr><td className="prova-number">{problem.problemNo}</td><td><div className="prova-problem-cell"><a href={problem.url || undefined} target="_blank" rel="noreferrer">{problem.title}</a><button type="button" className="prova-edit-visible" onClick={onEdit}>Edit</button></div>{problem.notes ? <small>{problem.notes}</small> : null}</td><td><span data-difficulty={problem.difficulty.toLowerCase()}>{problem.difficulty || "—"}</span></td><td>{problem.category}</td><td>{problem.solved ? <span className="prova-status-good">Yes</span> : "—"}</td><td className="prova-date">{displayDate(problem.dateSolved)}</td><td>{problem.solvedFirstTime || "—"}</td><td>{problem.solvedSub20 || "—"}</td><td><button type="button" onClick={onEdit}>Edit</button></td></tr>;
-  }
-
-  return <tr className="prova-row-editing"><td><input aria-label="Problem number" value={draft.problemNo} onChange={(event) => update("problemNo", event.target.value)} /></td><td><input aria-label="Problem title" value={draft.title} onChange={(event) => update("title", event.target.value)} /><input aria-label="LeetCode URL" type="url" value={draft.url} onChange={(event) => update("url", event.target.value)} placeholder="LeetCode URL" /></td><td><select aria-label="Difficulty" value={draft.difficulty} onChange={(event) => update("difficulty", event.target.value)}><option value="">Select</option><option>Easy</option><option>Medium</option><option>Hard</option></select></td><td><input aria-label="Category" value={draft.category} onChange={(event) => update("category", event.target.value)} /></td><td><label className="prova-inline-check"><input type="checkbox" checked={draft.solved} onChange={(event) => update("solved", event.target.checked)} /> Yes</label></td><td><input aria-label="Date solved" type="date" value={draft.dateSolved} onChange={(event) => { update("dateSolved", event.target.value); update("solved", Boolean(event.target.value)); }} /></td><td><select aria-label="First try" value={draft.solvedFirstTime} onChange={(event) => update("solvedFirstTime", event.target.value)}><option value="">—</option><option value="Y">Y</option><option value="N">N</option></select></td><td><select aria-label="Sub 20" value={draft.solvedSub20 || ""} onChange={(event) => update("solvedSub20", event.target.value)}><option value="">—</option><option value="Y">Y</option><option value="N">N</option></select></td><td><div className="prova-row-actions"><button type="button" className="prova-save-inline" onClick={() => void onSave(draft)}>Save</button><button type="button" onClick={onMore}>More</button><button type="button" onClick={onCancel}>Cancel</button></div></td></tr>;
+function ProblemRow({ problem, onEdit }: { problem: ProvaProblem; onEdit: () => void }) {
+  return <tr data-motion-item><td className="prova-number">{problem.problemNo}</td><td><div className="prova-problem-cell"><a href={problem.url || undefined} target="_blank" rel="noreferrer">{problem.site ? <span className="prova-site-label">{problem.site}</span> : null}{problem.title}</a></div>{problem.notes ? <small>{problem.notes}</small> : null}</td><td><span data-difficulty={problem.difficulty.toLowerCase()}>{problem.difficulty || "—"}</span></td><td>{problem.category}</td><td>{problem.solved ? <span className="prova-status-good">Yes</span> : "—"}</td><td className="prova-date">{displayDate(problem.dateSolved)}</td><td>{problem.solvedFirstTime || "—"}</td><td>{problem.solvedSub20 || "—"}</td><td>{problem.solveTime ? `${problem.solveTime}m` : "—"}</td><td><button type="button" className="prova-edit-visible" onClick={onEdit}>Edit</button></td></tr>;
 }
 
-function ProblemDialog({ problem, categories, imports, importsLoading, importsError, onClose, onSave, onDelete }: { problem: ProvaProblem; categories: string[]; imports: CodingProblem[]; importsLoading: boolean; importsError: string; onClose: () => void; onSave: (problem: ProvaProblem) => void; onDelete: () => void }) {
+function ProblemDialog({ problem, categories, imports, importsLoading, importsError, onClose, onSave, onDelete }: { problem: ProvaProblem; categories: string[]; imports: CodingProblem[]; importsLoading: boolean; importsError: string; onClose: () => void; onSave: (problem: ProvaProblem) => Promise<void>; onDelete: () => Promise<void> }) {
   const [draft, setDraft] = useState(problem);
   const [selectedImport, setSelectedImport] = useState("");
+  const [scrapingUrl, setScrapingUrl] = useState(false);
+  const [scrapeError, setScrapeError] = useState("");
+  const [closing, setClosing] = useState(false);
+  const [savingDialog, setSavingDialog] = useState(false);
   const isNew = !problem.title && !problem.problemNo;
   const update = (field: keyof ProvaProblem, value: string | boolean) => setDraft((current) => ({ ...current, [field]: value }));
 
-  useEffect(() => {
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = previous; };
-  }, []);
+  const closeDialog = () => {
+    if (savingDialog || closing) return;
+    setClosing(true);
+    window.setTimeout(onClose, 180);
+  };
+
+  const finishAndClose = async (action: () => Promise<void>) => {
+    setSavingDialog(true);
+    await action();
+    setClosing(true);
+    window.setTimeout(onClose, 180);
+  };
+
+  const handleUrlChange = (url: string) => {
+    setScrapeError("");
+    setDraft((current) => ({ ...current, url, site: detectSite(url) }));
+  };
+
+  const lookupUrlMetadata = async () => {
+    if (!draft.url || !detectSite(draft.url)) return;
+    setScrapingUrl(true);
+    setScrapeError("");
+    try {
+      const metadata = await scrapeUrlMetadata(draft.url);
+      setDraft((current) => ({ ...current, title: metadata.title || current.title, problemNo: metadata.problemNo || current.problemNo, site: metadata.site || current.site }));
+    } catch (error) {
+      setScrapeError(error instanceof Error ? error.message : "Problem details could not be loaded.");
+    } finally {
+      setScrapingUrl(false);
+    }
+  };
 
   const dialog = (
-    <div className="prova-dialog-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }} onKeyDown={(event) => { if (event.key === "Escape") onClose(); }}>
-      <form className="prova-dialog" role="dialog" aria-modal="true" aria-labelledby="prova-dialog-title" onSubmit={(event) => { event.preventDefault(); onSave(draft); }}>
-        <header><div><p className="metric-label">Practice record</p><h2 id="prova-dialog-title">{isNew ? "Add problem" : "Edit problem"}</h2></div><button type="button" onClick={onClose} aria-label="Close">×</button></header>
+    <div className="prova-dialog-backdrop" data-closing={closing || undefined} role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) closeDialog(); }} onKeyDown={(event) => { if (event.key === "Escape") closeDialog(); }}>
+      <form className="prova-dialog" role="dialog" aria-modal="true" aria-labelledby="prova-dialog-title" onSubmit={(event) => { event.preventDefault(); void finishAndClose(() => onSave(draft)); }}>
+        <header><div><p className="metric-label">Practice record</p><h2 id="prova-dialog-title">{isNew ? "Add problem" : "Edit problem"}</h2></div><button type="button" onClick={closeDialog} disabled={savingDialog} aria-label="Close">×</button></header>
         {isNew ? <section className="prova-import-panel"><label>Import from Problem Notes<select value={selectedImport} onChange={(event) => { const key = event.target.value; setSelectedImport(key); const selected = imports.find((item) => item.key === key); setDraft(selected ? codingToProva(selected) : problem); }}><option value="">Start with a blank problem</option>{imports.map((item) => <option key={item.key} value={item.key}>{item.leetcodeFrontendId ? `${item.leetcodeFrontendId}. ` : ""}{item.title}</option>)}</select></label><p>{importsLoading ? "Loading Problem Notes…" : importsError || (imports.length ? `${imports.length} unmatched note${imports.length === 1 ? "" : "s"} available to import.` : "Every Problem Note already matches a Prova problem.")}</p></section> : null}
-        <div className="prova-form-grid"><label>Problem number<input value={draft.problemNo} onChange={(event) => update("problemNo", event.target.value)} /></label><label>Difficulty<select value={draft.difficulty} onChange={(event) => update("difficulty", event.target.value)}><option value="">Select…</option><option>Easy</option><option>Medium</option><option>Hard</option></select></label><label className="wide">Title<input required value={draft.title} onChange={(event) => update("title", event.target.value)} /></label><label className="wide">LeetCode URL<input type="url" value={draft.url} onChange={(event) => update("url", event.target.value)} /></label><label>Category<input list="prova-categories" value={draft.category} onChange={(event) => update("category", event.target.value)} /><datalist id="prova-categories">{categories.map((item) => <option key={item}>{item}</option>)}</datalist></label><label>Date solved<input type="date" value={draft.dateSolved} onChange={(event) => { update("dateSolved", event.target.value); update("solved", Boolean(event.target.value)); }} /></label><fieldset className="wide"><legend>Progress</legend>{[["solved", "Solved"], ["solvedFirstTime", "First try"], ["holeInOne", "Hole in one"], ["solvedSub20", "Sub 20"], ["isCompetent", "Competent"]].map(([field, label]) => <label className="prova-check" key={field}><input type="checkbox" checked={field === "solved" ? draft.solved : draft[field as keyof ProvaProblem] === "Y"} onChange={(event) => update(field as keyof ProvaProblem, field === "solved" ? event.target.checked : event.target.checked ? "Y" : "N")} />{label}</label>)}</fieldset><label className="wide">Notes<textarea value={draft.notes} onChange={(event) => update("notes", event.target.value)} /></label></div>
-        <footer>{isNew ? <span /> : <button className="prova-danger" type="button" onClick={onDelete}>Delete</button>}<div><button type="button" onClick={onClose}>Cancel</button><button className="prova-primary" type="submit">Save</button></div></footer>
+        <div className="prova-form-grid"><label>Problem number<input value={draft.problemNo} onChange={(event) => update("problemNo", event.target.value)} /></label><label>Difficulty<select value={draft.difficulty} onChange={(event) => update("difficulty", event.target.value)}><option value="">Select…</option><option>Easy</option><option>Medium</option><option>Hard</option></select></label><label className="wide">Title<input required value={draft.title} onChange={(event) => update("title", event.target.value)} /></label><label className="wide">URL{scrapingUrl ? " (fetching…)" : ""}<input type="url" value={draft.url} onChange={(event) => handleUrlChange(event.target.value)} onBlur={() => void lookupUrlMetadata()} placeholder="LeetCode or NeetCode problem URL" />{draft.site ? <small>Detected: {draft.site === "LC" ? "LeetCode" : "NeetCode"}</small> : null}{scrapeError ? <small className="prova-field-error" role="alert">{scrapeError}</small> : null}</label><label>Time spent (minutes)<input type="number" min="0" step="0.1" value={draft.solveTime} onChange={(event) => update("solveTime", event.target.value)} placeholder="0" /></label><label>Category<input list="prova-categories" value={draft.category} onChange={(event) => update("category", event.target.value)} /><datalist id="prova-categories">{categories.map((item) => <option key={item}>{item}</option>)}</datalist></label><label>Date solved<input type="date" value={draft.dateSolved} onChange={(event) => { update("dateSolved", event.target.value); update("solved", Boolean(event.target.value)); }} /></label><fieldset className="wide"><legend>Progress</legend>{[["solved", "Solved"], ["solvedFirstTime", "First try"], ["holeInOne", "Hole in one"], ["solvedSub20", "Sub 20"], ["isCompetent", "Competent"]].map(([field, label]) => <label className="prova-check" key={field}><input type="checkbox" checked={field === "solved" ? draft.solved : draft[field as keyof ProvaProblem] === "Y"} onChange={(event) => update(field as keyof ProvaProblem, field === "solved" ? event.target.checked : event.target.checked ? "Y" : "N")} />{label}</label>)}</fieldset><label className="wide">Notes<textarea value={draft.notes} onChange={(event) => update("notes", event.target.value)} /></label></div>
+        <footer>{isNew ? <span /> : <button className="prova-danger" type="button" onClick={() => void finishAndClose(onDelete)} disabled={savingDialog}>Delete</button>}<div><button type="button" onClick={closeDialog} disabled={savingDialog}>Cancel</button><button className="prova-primary" type="submit" disabled={scrapingUrl || savingDialog} data-busy={savingDialog || undefined}>{savingDialog ? "Saving…" : "Save"}</button></div></footer>
       </form>
     </div>
   );

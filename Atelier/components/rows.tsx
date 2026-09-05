@@ -18,7 +18,7 @@ export function SessionChip({
 }) {
   if (session.status === "cancelled" || session.status === "late_cancel") {
     return (
-      <div className="mb-2 border-l-2 border-line px-2 py-1.5 text-xs text-mute">
+      <div data-motion-item className="mb-2 border-l-2 border-line px-2 py-1.5 text-xs text-mute">
         <Link href={`/students/${session.studentId}`} className="block line-through">
           <span className="block font-medium">{formatTime(session.startsAt)}</span>
           <span className="block">{student?.name ?? "Student"}</span>
@@ -64,7 +64,7 @@ export function SessionRow({
           : "default";
 
   return (
-    <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line py-4 last:border-b-0">
+    <div data-motion-item data-session-status={session.status} className="flex flex-wrap items-start justify-between gap-4 border-b border-line py-4 last:border-b-0">
       <div>
         <p className="text-sm text-ink">
           <span className="font-medium">{student?.name ?? "Student"}</span>
@@ -124,7 +124,7 @@ export function PaymentRow({
 }) {
   const tone = payment.status === "received" ? "good" : payment.status === "missing" ? "late" : payment.status === "cancelled" ? "quiet" : "warn";
   return (
-    <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line py-4 last:border-b-0">
+    <div data-motion-item className="flex flex-wrap items-start justify-between gap-4 border-b border-line py-4 last:border-b-0">
       <div>
         <p className="text-sm">
           <span className="font-medium">{formatMoney(payment.amountCents)}</span>
@@ -186,7 +186,7 @@ export function SeriesRow({
 }) {
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line py-4 last:border-b-0">
+    <div data-motion-item className="flex flex-wrap items-center justify-between gap-4 border-b border-line py-4 last:border-b-0">
       <div>
         <p className="text-sm">
           <span className="font-medium">{student?.name ?? "Student"}</span>
@@ -209,7 +209,7 @@ export function SeriesRow({
 
 export function NoteCard({ note }: { note: Note }) {
   return (
-    <article className="border-t border-line py-4 first:border-t-0">
+    <article data-motion-item className="border-t border-line py-4 first:border-t-0">
       <div className="mb-2 flex items-center justify-between gap-2 text-xs text-mute">
         <span>
           {new Date(note.createdAt).toLocaleString("en-US", {

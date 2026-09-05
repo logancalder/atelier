@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Atelier Problem Notes",
-  "version": "0.7.3",
+  "version": "0.7.5",
   "description": "Atelier notes, solve time, and first-try tracking for NeetCode.",
   "permissions": ["storage"],
   "host_permissions": [

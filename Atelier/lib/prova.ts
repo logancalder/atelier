@@ -8,7 +8,7 @@ import type { CodingProblem } from "./types";
 export type ProvaProblem = {
   id: number; problemNo: string; title: string; category: string; difficulty: string; url: string;
   dateSolved: string; solvedFirstTime: string; holeInOne: string; solvedSub20: string;
-  isCompetent: string; notes: string; solved: boolean;
+  isCompetent: string; notes: string; solved: boolean; solveTime: string; site: string;
 };
 
 const TARGET_EMAIL = "lcalder2022@gmail.com";
@@ -20,14 +20,26 @@ function readSeed(): ProvaProblem[] {
     if (!existsSync(file)) continue;
     try {
       const parsed: unknown = JSON.parse(readFileSync(file, "utf8"));
-      if (validProvaProblems(parsed)) return parsed;
+      if (validProvaProblems(parsed)) return normalizeProblems(parsed);
     } catch { /* A missing or malformed local seed should not prevent the app from starting. */ }
   }
   return [];
 }
 
 export function validProvaProblems(value: unknown): value is ProvaProblem[] {
-  return Array.isArray(value) && value.every((item) => item && typeof item === "object" && typeof item.id === "number" && typeof item.title === "string" && typeof item.problemNo === "string");
+  const requiredStringFields = ["problemNo", "title"];
+  const optionalStringFields = ["category", "difficulty", "url", "dateSolved", "solvedFirstTime", "holeInOne", "solvedSub20", "isCompetent", "notes"];
+  return Array.isArray(value) && value.length <= 5000 && value.every((item) => {
+    if (!item || typeof item !== "object") return false;
+    const problem = item as Record<string, unknown>;
+    if (typeof problem.id !== "number" || !Number.isFinite(problem.id) || typeof problem.solved !== "boolean") return false;
+    if (!requiredStringFields.every((field) => typeof problem[field] === "string" && (problem[field] as string).length <= 2_048)) return false;
+    if (!optionalStringFields.every((field) => problem[field] === undefined || (typeof problem[field] === "string" && (problem[field] as string).length <= (field === "notes" ? 50_000 : 2_048)))) return false;
+    if (problem.solveTime !== undefined && typeof problem.solveTime !== "string") return false;
+    if (problem.site !== undefined && !["", "LC", "NC"].includes(String(problem.site))) return false;
+    const minutes = problem.solveTime === undefined || problem.solveTime === "" ? 0 : Number(problem.solveTime);
+    return Number.isFinite(minutes) && minutes >= 0;
+  });
 }
 
 function normalizeProblem(problem: ProvaProblem): ProvaProblem {
@@ -45,6 +57,8 @@ function normalizeProblem(problem: ProvaProblem): ProvaProblem {
     isCompetent: problem.isCompetent ?? "",
     notes: problem.notes ?? "",
     solved: Boolean(problem.solved),
+    solveTime: problem.solveTime && Number.isFinite(Number(problem.solveTime)) && Number(problem.solveTime) >= 0 ? String(Number(problem.solveTime)) : "",
+    site: problem.site === "LC" || problem.site === "NC" ? problem.site : "",
   };
 }
 

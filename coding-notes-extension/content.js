@@ -203,6 +203,13 @@
     return [hours, minutes, seconds].filter((_, index) => hours || index > 0).map((part) => String(part).padStart(2, "0")).join(":");
   }
 
+  function parseMetricTime(value) {
+    const parts = String(value).trim().split(":");
+    if (parts.length < 2 || parts.length > 3 || parts.some((part) => !/^\d+$/.test(part))) return null;
+    const [hours, minutes, seconds] = parts.length === 3 ? parts.map(Number) : [0, ...parts.map(Number)];
+    return minutes <= 59 && seconds <= 59 ? hours * 3600 + minutes * 60 + seconds : null;
+  }
+
   function isSub20() { return record.seconds > 0 && record.seconds <= 1200 && record.submissions.some((submission) => submission.accepted); }
   function submissionCount() { return Number.isInteger(record.submissionCountOverride) ? record.submissionCountOverride : record.submissions.length; }
 
@@ -420,7 +427,7 @@
   }
 
   function editorMarkup() {
-    return `<div class="sn-editor"><div class="sn-drawer-top"><span class="sn-brand">ATELIER <i>·</i> CODING</span><button data-close type="button" aria-label="Close notes">×</button></div><header><div><span class="sn-eyebrow">PROBLEM NOTES</span><h2>${escapeHtml(displayProblemTitle())}</h2></div></header><div class="sn-account-row"><span data-account-status>Checking account…</span><button data-account type="button"></button></div><div class="sn-header-actions"><button data-sync type="button">↻ Sync</button><button data-all type="button">Open Atelier ↗</button></div><div class="sn-sync-status" data-sync-status aria-live="polite"></div><div class="sn-badges"><span><small>Time</small><b data-time></b></span><span class="sn-submission-pill"><small>Submissions</small><b data-attempts></b><button data-edit-count type="button" aria-label="Edit submission count" title="Edit submission count">✎</button></span><span><small>Sub 20</small><b data-sub20></b></span><span data-hole></span></div><div class="sn-count-popover" data-count-popover hidden><input id="sn-count" data-count-input aria-label="Submission count" type="number" min="0" step="1"><button data-save-count type="button" aria-label="Apply submission count">✓</button></div><div class="sn-flags"><label><input data-hints type="checkbox"> <span><b>Needed hints</b><small>I didn’t solve this fully on my own</small></span></label><label><input data-understand type="checkbox"> <span><b>Don’t understand</b><small>Flag this problem to revisit</small></span></label></div><label class="sn-notes-label" for="sn-notes">Notes</label><textarea id="sn-notes" placeholder="Approach, edge cases, mistakes, complexity…"></textarea><footer><span data-status aria-live="polite"></span><button data-save type="button">Save notes</button></footer></div>`;
+    return `<div class="sn-editor"><div class="sn-drawer-top"><span class="sn-brand">ATELIER <i>·</i> CODING</span><button data-close type="button" aria-label="Close notes">×</button></div><header><div><span class="sn-eyebrow">PROBLEM NOTES</span><h2>${escapeHtml(displayProblemTitle())}</h2></div></header><div class="sn-account-row"><span data-account-status>Checking account…</span><button data-account type="button"></button></div><div class="sn-header-actions"><button data-sync type="button">↻ Sync</button><button data-all type="button">Open Atelier ↗</button></div><div class="sn-sync-status" data-sync-status aria-live="polite"></div><div class="sn-badges"><span><small>Time</small><b data-time></b></span><span><small>Submissions</small><b data-attempts></b></span><span><small>Sub 20</small><b data-sub20></b></span><span data-hole></span><button data-edit-metrics type="button" aria-label="Edit time and submissions" title="Edit metrics">✎</button></div><div class="sn-metrics-editor" data-metrics-editor hidden><div class="sn-metrics-editor-head"><strong>Edit metrics</strong><button data-cancel-metrics type="button" aria-label="Close metric editor">×</button></div><div class="sn-metrics-fields"><label>Time <span>HH:MM:SS</span><input data-time-input inputmode="numeric" placeholder="00:00" autocomplete="off"></label><label>Submissions <span>Total attempts</span><input data-count-input type="number" min="0" step="1"></label></div><p>Sub 20 updates automatically from the time and an accepted submission.</p><div class="sn-metrics-actions"><button data-cancel-metrics type="button">Cancel</button><button data-save-metrics type="button">Save metrics</button></div></div><div class="sn-flags"><label><input data-hints type="checkbox"> <span><b>Needed hints</b><small>I didn’t solve this fully on my own</small></span></label><label><input data-understand type="checkbox"> <span><b>Don’t understand</b><small>Flag this problem to revisit</small></span></label></div><label class="sn-notes-label" for="sn-notes">Notes</label><textarea id="sn-notes" placeholder="Approach, edge cases, mistakes, complexity…"></textarea><footer><span data-status aria-live="polite"></span><button data-save type="button">Save notes</button></footer></div>`;
   }
 
   function wireEditor(panel) {
@@ -432,8 +439,8 @@
     const badges = panel.querySelector(".sn-badges");
     const footer = panel.querySelector("footer");
     const accountRow = panel.querySelector(".sn-account-row");
-    const editCount = panel.querySelector("[data-edit-count]");
-    const countPopover = panel.querySelector("[data-count-popover]");
+    const editMetrics = panel.querySelector("[data-edit-metrics]");
+    const metricsEditor = panel.querySelector("[data-metrics-editor]");
     panel.querySelector("[data-save]").textContent = "Save";
     sync.textContent = "↻";
     sync.setAttribute("aria-label", "Sync this problem");
@@ -444,8 +451,7 @@
     atelier.classList.add("sn-atelier-action");
     top.insertBefore(atelier, close);
     top.insertBefore(sync, close);
-    panel.querySelector(".sn-submission-pill").append(countPopover);
-    editCount.setAttribute("aria-expanded", "false");
+    editMetrics.setAttribute("aria-expanded", "false");
     panel.querySelector("header").after(badges);
 
     footer.prepend(accountRow);
@@ -456,23 +462,26 @@
     panel.querySelector("[data-close]").addEventListener("click", closeDrawer);
     wireAccount(panel);
     panel.querySelector("[data-sync]").addEventListener("click", syncSite);
-    const closeCountPopover = () => { countPopover.hidden = true; countPopover.classList.remove("sn-count-open"); editCount.setAttribute("aria-expanded", "false"); };
-    editCount.addEventListener("click", (event) => {
+    const closeMetricsEditor = () => { metricsEditor.hidden = true; editMetrics.setAttribute("aria-expanded", "false"); };
+    editMetrics.addEventListener("click", (event) => {
       event.stopPropagation();
-      const opening = countPopover.hidden;
-      countPopover.hidden = !opening;
-      countPopover.classList.toggle("sn-count-open", opening);
-      editCount.setAttribute("aria-expanded", String(opening));
-      if (opening) { const input = countPopover.querySelector("[data-count-input]"); input.focus(); input.select(); }
+      const opening = metricsEditor.hidden;
+      metricsEditor.hidden = !opening;
+      editMetrics.setAttribute("aria-expanded", String(opening));
+      if (opening) { renderRecord(); const input = metricsEditor.querySelector("[data-time-input]"); input.focus(); input.select(); }
     });
-    panel.addEventListener("click", (event) => { if (!countPopover.hidden && !countPopover.contains(event.target) && event.target !== editCount) closeCountPopover(); });
+    panel.addEventListener("click", (event) => { if (!metricsEditor.hidden && !metricsEditor.contains(event.target) && event.target !== editMetrics) closeMetricsEditor(); });
+    panel.querySelectorAll("[data-cancel-metrics]").forEach((button) => button.addEventListener("click", closeMetricsEditor));
     panel.querySelector("[data-save]").addEventListener("click", (event) => { void saveWithFeedback(event.currentTarget); });
-    panel.querySelector("[data-save-count]").addEventListener("click", () => {
+    panel.querySelector("[data-save-metrics]").addEventListener("click", () => {
+      const seconds = parseMetricTime(panel.querySelector("[data-time-input]").value);
       const value = panel.querySelector("[data-count-input]").value;
-      if (!/^\d+$/.test(value)) return;
+      if (seconds === null) { showToast("Use MM:SS or HH:MM:SS for time.", true); return; }
+      if (!/^\d+$/.test(value)) { showToast("Submissions must be a whole number.", true); return; }
+      record.seconds = seconds;
       record.submissionCountOverride = Number(value);
       record.holeInOne = Number(value) === 1;
-      save(); closeCountPopover();
+      void save(); closeMetricsEditor();
     });
     notes.addEventListener("input", () => { record.notes = notes.value; clearTimeout(saveTimer); saveTimer = setTimeout(save, 700); });
     panel.querySelector("[data-hints]").addEventListener("change", (event) => { record.neededHints = event.target.checked; save(); });
@@ -647,6 +656,7 @@
     panel.querySelector("[data-time]").textContent = formatTime(record.seconds);
     const count = submissionCount();
     panel.querySelector("[data-attempts]").textContent = `${count} submission${count === 1 ? "" : "s"}`;
+    panel.querySelector("[data-time-input]").value = formatTime(record.seconds);
     panel.querySelector("[data-count-input]").value = count;
     const sub20 = panel.querySelector("[data-sub20]"); sub20.textContent = isSub20() ? "✓ Yes" : "—"; sub20.classList.toggle("sn-positive", isSub20());
     const hole = panel.querySelector("[data-hole]"); hole.textContent = record.holeInOne ? "★ Hole in one" : ""; hole.hidden = !record.holeInOne;

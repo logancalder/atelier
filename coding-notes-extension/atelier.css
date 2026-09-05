@@ -45,6 +45,8 @@ small,
   text-transform: uppercase;
 }
 
+.site { font-family: var(--atelier-sans); text-transform: none; }
+
 h1,
 h2,
 .card h2,
@@ -89,20 +91,9 @@ button:hover { background: #fff; }
 }
 
 .metric + .metric { border-left: 1px solid var(--atelier-line); }
-.metric b { color: var(--atelier-ink); font-family: var(--atelier-serif); font-size: 2rem; font-weight: 400; }
+.metric b { color: var(--atelier-ink); font-family: var(--atelier-sans); font-size: 2rem; font-weight: 500; }
 
 .insights-grid { gap: 3rem; }
-.activity-card,
-.retry-card,
-.card,
-.category-group {
-  border: 0;
-  border-top: 1px solid var(--atelier-line);
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-}
-
 .activity-card,
 .retry-card { padding: 1.25rem 0; }
 .toolbar { margin: 3rem 0 1rem; }
@@ -112,7 +103,10 @@ button:hover { background: #fff; }
 #list { gap: 0; }
 .card { padding: 1.5rem 0; }
 .card h2 { font-size: 1.35rem; }
+.card .notes { display: block; }
 .notes { border-color: var(--atelier-line); color: var(--atelier-ink); line-height: 1.65; }
+.notes::before { content: "NOTES"; display: block; font-size: 10px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--atelier-mute); margin-bottom: .75rem; }
+.notes.muted::before { content: ""; }
 .muted { color: var(--atelier-mute); }
 .badge { border: 0; border-radius: 999px; color: var(--atelier-mute); background: transparent; }
 .badge.good, .hole { color: var(--atelier-good) !important; background: var(--atelier-good-bg); }
@@ -133,6 +127,20 @@ dialog {
 dialog::backdrop { background: rgba(43,40,35,.34); backdrop-filter: blur(5px); }
 .dialog-head h2 { font-family: var(--atelier-serif); font-weight: 400; }
 .dialog-actions #edit-save { border-color: var(--atelier-sidebar); color: var(--atelier-paper); background: var(--atelier-sidebar); }
+
+/* Edit dialog layout */
+.edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+.edit-field { display: flex; flex-direction: column; }
+.edit-field label { font-size: 10px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--atelier-mute); margin-bottom: .5rem; }
+.edit-input-group { position: relative; }
+.edit-value-input { width: 100%; padding: .75rem .5rem; border: 1px solid var(--atelier-line); border-radius: 6px; background: rgba(255,255,255,.7); color: var(--atelier-ink); font-family: var(--atelier-sans); font-size: 1.1rem; font-weight: 500; }
+.edit-unit { font-size: 12px; color: var(--atelier-mute); margin-top: .25rem; }
+.auto-count { margin: .5rem 0 0; font-size: 12px; color: var(--atelier-mute); }
+.auto-count b { color: var(--atelier-ink); font-weight: 600; }
+.auto-count button { padding: 2px 8px; margin-left: .5rem; font-size: 11px; }
+.edit-flags { display: flex; gap: 1.5rem; margin-bottom: 1.5rem; }
+.edit-notes-label { font-size: 10px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--atelier-mute); display: block; margin-bottom: .5rem; }
+
 
 /* The editor injected into LeetCode and NeetCode uses the same Atelier primitives. */
 #solvenotes-panel {
