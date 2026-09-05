@@ -12,11 +12,14 @@
       svg.innerHTML = '<defs><filter id="atelier-liquid-filter" x="-30%" y="-60%" width="160%" height="220%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur"/><feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -8"/></filter></defs>';
       document.body.append(svg);
     }
-    root.querySelectorAll('#all-notes, #edit-save, #solvenotes-panel [data-save]').forEach(button => {
+    const selector = root === document
+      ? '#all-notes, #edit-save, #solvenotes-panel [data-save]'
+      : '#all-notes, #edit-save, [data-save]';
+    root.querySelectorAll(selector).forEach(button => {
       button.classList.add('atelier-gooey');
       if (!watched.has(button)) {
         watched.add(button);
-        new MutationObserver(() => { if (button.isConnected && !button.querySelector('.atelier-liquid')) enhance(button.parentElement); }).observe(button, { childList:true });
+        new MutationObserver(() => { if (button.isConnected && !button.querySelector('.atelier-liquid')) enhance(button.parentElement ?? document); }).observe(button, { childList:true });
       }
       if (button.querySelector('.atelier-liquid')) return;
       const layer = document.createElement('span');
