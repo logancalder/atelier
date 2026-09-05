@@ -27,6 +27,8 @@ export default async function SessionsPage({
 
   return (
     <Shell
+      className="sessions-page"
+      description="Your week at a glance. Make room for the next good lesson."
       eyebrow="Calendar"
       title="Sessions"
       actions={
@@ -40,7 +42,7 @@ export default async function SessionsPage({
         </>
       }
     >
-      <div className="mb-10 grid grid-cols-[auto_1fr_auto] items-center gap-2 sm:gap-4">
+      <div className="calendar-toolbar">
         <Link href={`/sessions?week=${prev}`} className="text-sm text-mute hover:text-ink">
           ← Previous
         </Link>
@@ -52,13 +54,13 @@ export default async function SessionsPage({
         </Link>
       </div>
 
-      <div className="grid gap-x-4 gap-y-8 sm:grid-cols-2 xl:grid-cols-7">
+      <div className="calendar-week">
         {days.map((day) => {
           const key = toDateKey(day);
           const items = sortSessions(sessions.filter((session) => session.startsAt.startsWith(key)));
           const isToday = key === toDateKey(new Date());
           return (
-            <Card key={key} className={isToday ? "today-column" : ""}>
+            <Card key={key} className={isToday ? "calendar-day today-column" : "calendar-day"}>
               <p className="text-[11px] uppercase tracking-[0.14em] text-mute">
                 {day.toLocaleDateString("en-US", { weekday: "short" })}
               </p>
@@ -72,7 +74,7 @@ export default async function SessionsPage({
                   />
                 ))
               ) : (
-                <p className="text-xs text-mute">—</p>
+                <p className="calendar-free">No sessions</p>
               )}
             </Card>
           );

@@ -1,3 +1,10 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Atelier Problem Notes</title><link rel="stylesheet" href="popup.css"><link rel="stylesheet" href="theme.css"><link rel="stylesheet" href="atelier.css"><link rel="stylesheet" href="popup-account.css"></head>
-<body><main><header><div><small>ATELIER · CODING</small><h1>Your practice log</h1></div><button id="all-notes" type="button">Open Atelier ↗</button></header><section id="extension-account"><span id="connection-status">Checking account…</span><button id="connect-atelier" type="button">Connect account</button></section><section id="summary"></section><div id="problems"></div><p id="empty" hidden>Solve a problem to start your log.</p></main><script src="grouping.js"></script><script src="atelier-sync.js"></script><script src="popup.js"></script></body></html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Atelier Problem Notes</title><link rel="stylesheet" href="workbench.css"><link rel="stylesheet" href="effects.css"></head>
+<body class="extension-popup"><main>
+<header><div class="extension-brand"><span aria-hidden="true">A</span>Atelier</div><small>Practice notebook</small><h1>Your practice log</h1><p>Pick up where you left off.</p><button id="all-notes" type="button">Open your workspace ↗</button></header>
+<section id="extension-account" aria-label="Account connection"><span id="connection-status" role="status">Checking account…</span><button id="connect-atelier" type="button">Connect account</button></section>
+<section id="summary" aria-label="Practice summary"></section>
+<div class="notebook-heading"><h2>Recent practice</h2><p>Latest 12 problems</p></div>
+<div id="problems"></div><p id="empty" hidden>Your notebook starts with one problem. Save a note while you practice.</p>
+</main><script src="grouping.js"></script><script src="atelier-sync.js"></script><script src="popup.js"></script><script src="effects.js"></script></body></html>

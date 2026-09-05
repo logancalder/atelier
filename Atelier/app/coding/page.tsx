@@ -83,7 +83,7 @@ export default async function CodingPage() {
   ));
 
   return (
-    <Shell eyebrow="Coding workspace" title="Problem notes" section="coding">
+    <Shell className="coding-page" description="A record of your practice. Keep the insight, revisit the difficult parts." eyebrow="Coding workspace" title="Problem notes" section="coding">
       <div className="stat-strip mb-16 grid sm:grid-cols-3">
         <Card><p className="metric-label">Problems</p><p className="mt-2 font-serif text-3xl">{problems.length}</p><p className="text-sm text-mute">held in Atelier</p></Card>
         <Card><p className="metric-label">Solved</p><p className="mt-2 font-serif text-3xl">{solvedProblems.length}</p><p className="text-sm text-mute">{problems.length ? Math.round((solvedProblems.length / problems.length) * 100) : 0}% of the notebook</p></Card>

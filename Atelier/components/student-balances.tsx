@@ -23,7 +23,7 @@ export function StudentBalances({ students, payments }: { students: Student[]; p
   if (!balances.length) return null;
 
   return (
-    <section className="mb-12 border-t border-ink">
+    <section className="ledger-section student-balances">
       <div className="flex items-baseline justify-between border-b border-line py-3">
         <div>
           <p className="section-label">Reconciled balances</p>

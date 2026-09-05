@@ -3,7 +3,9 @@
   "name": "Atelier Problem Notes",
   "version": "0.7.5",
   "description": "Atelier notes, solve time, and first-try tracking for NeetCode.",
-  "permissions": ["storage"],
+  "permissions": [
+    "storage"
+  ],
   "host_permissions": [
     "https://neetcode.io/*",
     "https://www.neetcode.io/*",
@@ -27,8 +29,20 @@
         "https://neetcode.io/problems/*",
         "https://www.neetcode.io/problems/*"
       ],
-      "js": ["atelier-sync.js", "content.js"],
-      "css": ["content.css", "neetcode.css", "leetcode.css", "content-theme.css", "atelier-content.css", "atelier-drawer.css"],
+      "js": [
+        "effects.js",
+        "atelier-sync.js",
+        "content.js"
+      ],
+      "css": [
+        "content.css",
+        "neetcode.css",
+        "leetcode.css",
+        "content-theme.css",
+        "atelier-content.css",
+        "atelier-drawer.css",
+        "effects.css"
+      ],
       "run_at": "document_idle"
     }
   ]

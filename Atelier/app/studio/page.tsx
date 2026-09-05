@@ -25,6 +25,8 @@ export default async function StudioPage() {
 
   return (
     <Shell
+      className="studio-page"
+      description="Today’s teaching, the next lesson, and anything that needs your attention."
       eyebrow={formatLongDate(todayKey())}
       title={greeting}
       actions={

@@ -209,7 +209,7 @@ export function SeriesRow({
 
 export function NoteCard({ note }: { note: Note }) {
   return (
-    <article data-motion-item className="border-t border-line py-4 first:border-t-0">
+    <article data-motion-item className="journal-entry border-t border-line py-4 first:border-t-0">
       <div className="mb-2 flex items-center justify-between gap-2 text-xs text-mute">
         <span>
           {new Date(note.createdAt).toLocaleString("en-US", {
@@ -238,10 +238,11 @@ export function StudentCard({ student, href }: { student: Student; href: string 
   return (
     <Link
       href={href}
-      className="group block border-b border-line py-5 transition-colors hover:border-ink/40"
+      className="student-row group"
     >
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <p className="font-serif text-xl text-ink">{student.name}</p>
+      <span className="student-initial" aria-hidden="true">{student.name.slice(0,1).toUpperCase()}</span>
+      <div className="student-row-name">
+        <p className="text-base font-medium text-ink">{student.name}</p>
         <span className="h-2 w-2 rounded-full" style={{ background: student.color }} />
       </div>
       <p className="text-sm text-mute">

@@ -1,0 +1,20 @@
+/* Hover-only liquid backgrounds; text stays crisp. */
+.atelier-gooey .atelier-liquid, .atelier-gooey-switch .atelier-liquid { display:block!important; position:absolute!important; inset:0!important; pointer-events:none!important; z-index:-1!important; filter:url('#atelier-liquid-filter'); }
+.atelier-liquid i { display:block!important; position:absolute!important; border:0!important; margin:0!important; padding:0!important; border-radius:50%!important; transition:transform 650ms cubic-bezier(.22,1.4,.36,1)!important; }
+.atelier-gooey .atelier-liquid i { width:52px!important; height:52px!important; top:calc(50% - 26px)!important; background:#526d4c!important; opacity:.65; }
+.atelier-gooey .atelier-liquid i:first-child { left:-35px!important; }
+.atelier-gooey .atelier-liquid i:last-child { right:-35px!important; }
+.atelier-gooey:is(:hover,:focus-visible) .atelier-liquid i:first-child { transform:translateX(38px) scale(1.6); }
+.atelier-gooey:is(:hover,:focus-visible) .atelier-liquid i:last-child { transform:translateX(-38px) scale(1.6); }
+.atelier-gooey:active .atelier-liquid i { transition-duration:150ms!important; }
+.atelier-gooey-switch { position:relative; isolation:isolate; overflow:hidden; }
+.atelier-gooey-switch button { position:relative; z-index:1; flex:1; }
+.atelier-gooey-switch button.active { background:transparent; box-shadow:none; color:#2f2e2a; }
+.atelier-gooey-switch .atelier-liquid i { width:calc(50% - 6px)!important; height:calc(100% - 6px)!important; top:3px!important; left:3px!important; border-radius:8px!important; background:#c6d3bc!important; }
+.atelier-gooey-switch .atelier-liquid i:last-child { transition-delay:65ms!important; }
+.atelier-gooey-switch:has(button:last-of-type.active) .atelier-liquid i { transform:translateX(calc(100% + 6px)); }
+
+.atelier-gooey { position:relative!important; isolation:isolate; overflow:hidden!important; }
+.atelier-gooey .atelier-liquid { opacity:0!important; visibility:hidden; transition:opacity 180ms ease; }
+.atelier-gooey:not(:disabled):is(:hover,:focus-visible) .atelier-liquid { opacity:1!important; visibility:visible; }
+@media(prefers-reduced-motion:reduce) { .atelier-liquid, .atelier-liquid i { transition:none!important; } }

@@ -13,6 +13,8 @@ export default async function StudentsPage() {
 
   return (
     <Shell
+      className="students-page"
+      description="The people you teach, and the work you’re doing together."
       eyebrow="People"
       title="Students"
       actions={

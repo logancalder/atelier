@@ -411,9 +411,10 @@
     }
     document.getElementById(TAB_ID)?.setAttribute("data-solvenotes-active", "true");
     const panel = document.createElement("section");
-    panel.id = PANEL_ID; panel.innerHTML = editorMarkup();
+    panel.id = PANEL_ID; panel.classList.add("sn-workbench"); panel.innerHTML = editorMarkup();
     if (isLeetCode()) panel.classList.add("sn-leetcode-overlay");
     host.appendChild(panel); positionLeetCodePanel(); wireEditor(panel);
+      globalThis.AtelierEffects?.enhance(panel);
   }
 
   function closeNotes() {
@@ -427,7 +428,7 @@
   }
 
   function editorMarkup() {
-    return `<div class="sn-editor"><div class="sn-drawer-top"><span class="sn-brand">ATELIER <i>·</i> CODING</span><button data-close type="button" aria-label="Close notes">×</button></div><header><div><span class="sn-eyebrow">PROBLEM NOTES</span><h2>${escapeHtml(displayProblemTitle())}</h2></div></header><div class="sn-account-row"><span data-account-status>Checking account…</span><button data-account type="button"></button></div><div class="sn-header-actions"><button data-sync type="button">↻ Sync</button><button data-all type="button">Open Atelier ↗</button></div><div class="sn-sync-status" data-sync-status aria-live="polite"></div><div class="sn-badges"><span><small>Time</small><b data-time></b></span><span><small>Submissions</small><b data-attempts></b></span><span><small>Sub 20</small><b data-sub20></b></span><span data-hole></span><button data-edit-metrics type="button" aria-label="Edit time and submissions" title="Edit metrics">✎</button></div><div class="sn-metrics-editor" data-metrics-editor hidden><div class="sn-metrics-editor-head"><strong>Edit metrics</strong><button data-cancel-metrics type="button" aria-label="Close metric editor">×</button></div><div class="sn-metrics-fields"><label>Time <span>HH:MM:SS</span><input data-time-input inputmode="numeric" placeholder="00:00" autocomplete="off"></label><label>Submissions <span>Total attempts</span><input data-count-input type="number" min="0" step="1"></label></div><p>Sub 20 updates automatically from the time and an accepted submission.</p><div class="sn-metrics-actions"><button data-cancel-metrics type="button">Cancel</button><button data-save-metrics type="button">Save metrics</button></div></div><div class="sn-flags"><label><input data-hints type="checkbox"> <span><b>Needed hints</b><small>I didn’t solve this fully on my own</small></span></label><label><input data-understand type="checkbox"> <span><b>Don’t understand</b><small>Flag this problem to revisit</small></span></label></div><label class="sn-notes-label" for="sn-notes">Notes</label><textarea id="sn-notes" placeholder="Approach, edge cases, mistakes, complexity…"></textarea><footer><span data-status aria-live="polite"></span><button data-save type="button">Save notes</button></footer></div>`;
+    return `<div class="sn-editor"><div class="sn-drawer-top"><span class="sn-brand">Atelier <i> / </i> Practice</span><button data-close type="button" aria-label="Close notes">×</button></div><header><div><span class="sn-eyebrow">YOUR PRACTICE</span><h2>${escapeHtml(displayProblemTitle())}</h2></div></header><div class="sn-account-row"><span data-account-status>Checking account…</span><button data-account type="button"></button></div><div class="sn-header-actions"><button data-sync type="button">↻ Sync</button><button data-all type="button">Open Atelier ↗</button></div><div class="sn-sync-status" data-sync-status aria-live="polite"></div><div class="sn-badges"><span><small>Time</small><b data-time></b></span><span><small>Submissions</small><b data-attempts></b></span><span><small>Sub 20</small><b data-sub20></b></span><span data-hole></span><button data-edit-metrics type="button" aria-label="Edit time and submissions" title="Edit metrics">✎</button></div><div class="sn-metrics-editor" data-metrics-editor hidden><div class="sn-metrics-editor-head"><strong>Edit metrics</strong><button data-cancel-metrics type="button" aria-label="Close metric editor">×</button></div><div class="sn-metrics-fields"><label>Time <span>HH:MM:SS</span><input data-time-input inputmode="numeric" placeholder="00:00" autocomplete="off"></label><label>Submissions <span>Total attempts</span><input data-count-input type="number" min="0" step="1"></label></div><p>Sub 20 updates automatically from the time and an accepted submission.</p><div class="sn-metrics-actions"><button data-cancel-metrics type="button">Cancel</button><button data-save-metrics type="button">Save metrics</button></div></div><p class="sn-section-label">Review checklist</p><div class="sn-flags"><label><input data-hints type="checkbox"> <span><b>Needed hints</b><small>I didn’t solve this fully on my own</small></span></label><label><input data-understand type="checkbox"> <span><b>Don’t understand</b><small>Flag this problem to revisit</small></span></label></div><label class="sn-notes-label" for="sn-notes">Working notes</label><p class="sn-notes-hint">Capture the approach. Leave a clue for your next attempt.</p><textarea id="sn-notes" placeholder="Approach, edge cases, mistakes, complexity…"></textarea><footer><span data-status aria-live="polite"></span><button data-save type="button">Save notes</button></footer></div>`;
   }
 
   function wireEditor(panel) {
@@ -626,11 +627,12 @@
     let panel = document.getElementById(PANEL_ID);
     if (!panel) {
       panel = document.createElement("aside");
-      panel.id = PANEL_ID;
+      panel.id = PANEL_ID; panel.classList.add("sn-workbench");
       panel.setAttribute("aria-label", "Atelier problem notes");
       panel.innerHTML = editorMarkup();
       document.body.appendChild(panel);
       wireEditor(panel);
+      globalThis.AtelierEffects?.enhance(panel);
     }
     notesOpen = true;
     requestAnimationFrame(() => panel.setAttribute("data-open", "true"));
@@ -655,7 +657,7 @@
     panel.querySelector("h2").textContent = displayProblemTitle();
     panel.querySelector("[data-time]").textContent = formatTime(record.seconds);
     const count = submissionCount();
-    panel.querySelector("[data-attempts]").textContent = `${count} submission${count === 1 ? "" : "s"}`;
+    panel.querySelector("[data-attempts]").textContent = String(count);
     panel.querySelector("[data-time-input]").value = formatTime(record.seconds);
     panel.querySelector("[data-count-input]").value = count;
     const sub20 = panel.querySelector("[data-sub20]"); sub20.textContent = isSub20() ? "✓ Yes" : "—"; sub20.classList.toggle("sn-positive", isSub20());
