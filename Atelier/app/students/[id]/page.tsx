@@ -32,6 +32,8 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
 
   return (
     <Shell
+      className="student-page"
+      description="Lessons, progress, and the details that keep teaching personal."
       eyebrow={student.subject || "Student"}
       title={student.name}
       actions={

@@ -1,3 +1,4 @@
+import { GooeyLayer } from "@/components/gooey";
 import type { ReactNode } from "react";
 
 export function Button({
@@ -17,9 +18,10 @@ export function Button({
   return (
     <button
       {...props}
-      className={`button-base inline-flex items-center justify-center gap-1.5 rounded-md px-3.5 py-2 text-sm font-medium disabled:opacity-50 ${styles} ${props.className ?? ""}`}
+      className={`button-base ${variant === "primary" ? "site-gooey" : ""} inline-flex items-center justify-center gap-1.5 rounded-md px-3.5 py-2 text-sm font-medium disabled:opacity-50 ${styles} ${props.className ?? ""}`}
     >
       {children}
+      {variant === "primary" ? <GooeyLayer /> : null}
     </button>
   );
 }
@@ -35,7 +37,7 @@ export function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[11px] font-medium uppercase tracking-[0.14em] text-mute">
+      <span className="field-label">
         {label}
       </span>
       {children}
@@ -101,8 +103,8 @@ export function Badge({
 
 export function Empty({ title, body }: { title: string; body: string }) {
   return (
-    <div className="py-9 text-left">
-      <p className="font-serif text-lg text-ink">{title}</p>
+    <div className="empty-state">
+      <p className="empty-title">{title}</p>
       <p className="mt-1 max-w-xl text-sm leading-relaxed text-mute">{body}</p>
     </div>
   );

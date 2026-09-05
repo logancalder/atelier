@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NavLinks } from "./nav-links";
 import { ProfileNavItem } from "./profile-nav-item";
-import { VantaBackground } from "./vanta-background";
 
 export function WorkspaceFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -14,11 +13,11 @@ export function WorkspaceFrame({ children }: { children: ReactNode }) {
 
   return (
     <div className="app-shell">
+      <a className="skip-link" href="#workspace">Skip to workspace</a>
       <aside className="app-sidebar">
-        <VantaBackground variant="rings" />
         <Link href="/" className="brand-block" aria-label="Atelier welcome page">
           <div className="brand-mark" aria-hidden="true">A</div>
-          <div>
+          <div className="rail-brand-copy">
             <p className="font-serif text-[1.45rem] leading-none">Atelier</p>
             <p className="brand-caption mt-1 text-[9px] uppercase tracking-[0.16em]">a private working desk</p>
           </div>
@@ -26,7 +25,7 @@ export function WorkspaceFrame({ children }: { children: ReactNode }) {
         <NavLinks />
         <ProfileNavItem />
       </aside>
-      <div className="app-content">
+      <div className="app-content" id="workspace" tabIndex={-1}>
         <div className="workspace-route">{children}</div>
       </div>
     </div>

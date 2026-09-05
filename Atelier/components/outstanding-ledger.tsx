@@ -21,7 +21,7 @@ export function OutstandingLedger({
   const total = payments.reduce((sum, payment) => sum + payment.amountCents, 0);
 
   return (
-    <section className="mb-12 border-t border-ink pt-5">
+    <section className="ledger-section outstanding-ledger">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="section-label">Open ledger</p>

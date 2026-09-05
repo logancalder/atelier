@@ -28,6 +28,8 @@ export default async function MoneyPage() {
 
   return (
     <Shell
+      className="money-page"
+      description="A clear view of what’s due, what’s upcoming, and what’s settled."
       eyebrow="Ledger"
       title="Zelle"
       actions={

@@ -1,3 +1,4 @@
+import { GooeyLayer } from "@/components/gooey";
 import Link from "next/link";
 import { VantaBackground } from "@/components/vanta-background";
 
@@ -21,8 +22,8 @@ export default function LandingPage() {
         <p className="landing-intro">
           Coding practice and tutoring work—held together, kept distinct, and ready when you are.
         </p>
-        <Link href="/coding" className="landing-cta">
-          Open Atelier <span aria-hidden="true">→</span>
+        <Link href="/coding" className="landing-cta site-gooey">
+          Open Atelier <span aria-hidden="true">→</span><GooeyLayer />
         </Link>
       </section>
 

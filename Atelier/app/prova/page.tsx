@@ -11,5 +11,5 @@ export default async function ProvaPage() {
     const sync = await syncCodingProblemsToProva(user.uid, readCodingNotebook(user.uid).problems);
     if (sync.matched) problems = await readProva(user);
   }
-  return <Shell className="prova-page" eyebrow="Coding workspace" title="Prova"><ProvaWorkspace seed={problems} /></Shell>;
+  return <Shell className="prova-page" description="Track the problems, patterns, and milestones in your practice." eyebrow="Coding workspace" title="Prova"><ProvaWorkspace seed={problems} /></Shell>;
 }
