@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const groups = [
+  { label: "Client work", links: [{ href: "/demos", label: "Client demos", path: "M3 4h18v14H3V4Zm5 18h8m-4-4v4M3 8h18" }] },
   { label: "Coding", links: [
     { href: "/coding", label: "Problem notes", path: "M8 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3M14 4l6 6M10 14l2-5 6-6 3 3-6 6-5 2Z" },
     { href: "/prova", label: "Prova tracker", path: "m8 7-5 5 5 5m8-10 5 5-5 5m-3-13-2 16" },

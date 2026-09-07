@@ -1,0 +1,10 @@
+leetcode
+coding-notes-extension
+**/node_modules
+**/.next
+**/.vercel
+**/.env*
+**/*.tsbuildinfo
+Atelier/data/users
+Atelier/data/*.json
+*.xlsx
