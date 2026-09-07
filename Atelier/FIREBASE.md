@@ -85,3 +85,15 @@ service cloud.firestore {
   }
 }
 ```
+
+## Client demos
+
+The `/demos` section requires a verified Atelier session, including on every settings mutation. Demo documents in `demoSites/{id}` are scoped to the creating Firebase UID. They store a salted scrypt password hash, a hashed per-site server key, an enabled flag, an optional ISO UTC expiry, and a version used to invalidate sessions when a password changes or access is toggled.
+
+Set `ATELIER_DEMO_URL=https://<atelier-domain>/api/demo-access` and `ATELIER_DEMO_KEY=<one-time-key>` on each demo host. Keep the key server-only. The integration POSTs `{action:"login",password,userAgent}` or `{action:"validate",session}` with `Authorization: Bearer <key>`. Do not expose this key in browser JavaScript. Tim's Handyman demonstrates the integration. An unavailable API must keep the demo locked.
+
+Successful password entries create `demoSites/{id}/logins/{id}` records with a server timestamp (`at`) and a coarse browser/OS/device description (`device`). Failed passwords and subsequent session checks do not create login records. No IP addresses, raw user-agent strings, fingerprinting, or passwords are logged. The UI displays the latest 50 records; history remains until removed by the owner through database administration. These records show use of a shared password, not a person's identity. The demo login page discloses collection.
+
+Sessions are random tokens stored only as SHA-256 hashes in `sessions/{hash}` with at most 24-hour expiry. Every validation rechecks the demo expiry, enabled state, and version. A per-demo transactional limit allows 100 login attempts per 15-minute window. Direct browser Firestore access must remain denied, as above. Optional Firestore TTL can be configured on a separate Timestamp field in a future retention change; current ISO expiry is enforced by application checks.
+
+Run `node --experimental-strip-types scripts/demo-regression.mjs` for pure checks. Set `DEMO_INTEGRATION_TEST=1` and run with `--env-file=.env.local` after `npm run build` to exercise the real API with a temporary isolated Firebase demo; test fixtures are removed afterward.
