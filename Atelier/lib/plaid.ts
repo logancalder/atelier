@@ -1,3 +1,4 @@
+import { eligiblePayment } from "./payment-eligibility";
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { DATA_DIR } from "./data-path";
@@ -281,6 +282,7 @@ export async function syncPlaidTransactions(ownerId: string) {
       }
 
       const inWindow = studio.payments
+        .filter((payment) => eligiblePayment(studio, payment))
         .filter((payment) => payment.studentId === student.id && !deposit.matchedPaymentIds.includes(payment.id))
         .filter((payment) => Math.abs(new Date(`${payment.dueDate}T12:00:00`).getTime() - depositTime) <= 14 * 86400000);
 

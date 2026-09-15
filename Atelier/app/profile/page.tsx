@@ -1,3 +1,4 @@
+import { LinkSignInMethod } from "@/components/link-sign-in-method";
 import { redirect } from "next/navigation";
 import { Shell } from "@/components/shell";
 import { SignOutButton } from "@/components/sign-out-button";
@@ -29,6 +30,7 @@ export default async function ProfilePage() {
               return <div className="linked-account" key={id}><ProviderIcon provider={id} /><span><strong>{label}</strong><small>{provider.email || user.email}</small></span><i>Linked</i></div>;
             })}
           </div>
+          <LinkSignInMethod uid={user.uid} email={authUser.email || ""} providers={authUser.providerData.map(p=>p.providerId)} />
           <SignOutButton />
         </aside>
         <form action={saveProfile} className="profile-form"><div className="form-section-heading"><h2>Workspace preferences</h2><p>How you appear across Atelier.</p></div>

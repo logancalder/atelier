@@ -1,3 +1,4 @@
+import { codingProblemHref } from "@/lib/problem-library";
 import Link from "next/link";
 import { Shell } from "@/components/shell";
 import { DeleteCodingProblemButton } from "@/components/delete-coding-problem-button";
@@ -30,15 +31,6 @@ function solvedDate(problem: CodingProblem) {
   return value ? new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(value)) : null;
 }
 
-function problemLink(problem: CodingProblem) {
-  if (problem.leetcodeSlug) return `https://leetcode.com/problems/${problem.leetcodeSlug}/`;
-  if (problem.url.includes("neetcode.io")) {
-    const slug = problem.url.match(/\/problems\/([^/?#]+)/)?.[1];
-    if (slug) return `https://leetcode.com/problems/${slug}/`;
-  }
-  return problem.url;
-}
-
 function duration(seconds: number) {
   const minutes = Math.floor(seconds / 60);
   return seconds >= 3600 ? `${Math.floor(seconds / 3600)}h ${minutes % 60}m` : `${minutes}m`;
@@ -67,10 +59,14 @@ function activity(problems: CodingProblem[]) {
   });
 }
 
-export default async function CodingPage() {
+export default async function CodingPage({ searchParams }: { searchParams: Promise<{page?:string}> }) {
+  const query=await searchParams;
   const notebook = readCodingNotebook(await dataOwnerId());
   await mirrorCurrentData();
-  const problems = notebook.problems;
+  const problems = [...notebook.problems].sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));
+  const pageCount=Math.max(1,Math.ceil(problems.length/12));
+  const requested=Number(query.page); const page=Number.isSafeInteger(requested) ? Math.max(1,Math.min(pageCount,requested)) : 1;
+  const pageProblems=problems.slice((page-1)*12,page*12);
   const solvedProblems = problems.filter(solved);
   const retry = problems.filter((problem) => problem.dontUnderstand || problem.neededHints || !solved(problem));
   const activityDays = activity(problems);
@@ -83,7 +79,8 @@ export default async function CodingPage() {
   ));
 
   return (
-    <Shell className="coding-page" description="A record of your practice. Keep the insight, revisit the difficult parts." eyebrow="Coding workspace" title="Problem notes" section="coding">
+    <Shell className="coding-page" description="A record of your practice. Keep the insight, revisit the difficult parts." eyebrow="Coding workspace" title="Recent notes" section="coding">
+      <div className="workflow-tabs"><Link href="/prova">Master library</Link><Link href="/coding" aria-current="page">Recent notes</Link></div>
       <div className="stat-strip mb-16 grid sm:grid-cols-3">
         <Card><p className="metric-label">Problems</p><p className="mt-2 font-serif text-3xl">{problems.length}</p><p className="text-sm text-mute">held in Atelier</p></Card>
         <Card><p className="metric-label">Solved</p><p className="mt-2 font-serif text-3xl">{solvedProblems.length}</p><p className="text-sm text-mute">{problems.length ? Math.round((solvedProblems.length / problems.length) * 100) : 0}% of the notebook</p></Card>
@@ -124,12 +121,12 @@ export default async function CodingPage() {
         </div>
         {problems.length ? (
           <div className="problem-grid">
-            {problems.map((problem) => (
+            {pageProblems.map((problem) => (
               <article className="problem-card" data-motion-item data-problem-key={problem.key} key={problem.key}>
                 <div className="problem-card-head">
                   <div className="min-w-0">
                     <p className="metric-label">{[problem.leetcodeFrontendId ? "#" + problem.leetcodeFrontendId : null, problem.key.split(":")[0], problem.tags?.[0] || null].filter(Boolean).join(" · ")}</p>
-                    <h3><Link href={problemLink(problem)} target="_blank">{problem.title}</Link></h3>
+                    <h3><Link href={codingProblemHref(problem)}>{problem.title}</Link></h3>
                   </div>
                   <div className="problem-card-actions"><span className="problem-time">{duration(problem.seconds)}</span><EditCodingProblemButton problem={problem} /><DeleteCodingProblemButton problemKey={problem.key} title={problem.title} /></div>
                 </div>
@@ -147,6 +144,7 @@ export default async function CodingPage() {
           </div>
         ) : <Empty title="No coding notes yet" body="Load the Atelier Problem Notes extension, open a LeetCode or NeetCode problem, and save a note. It will appear here while Atelier is running." />}
       </Card>
+      <nav className="workflow-tabs" aria-label="Recent notes pages">{page>1 ? <Link href={`/coding?page=${page-1}`}>Previous</Link>:<span>Previous</span>}<span>Page {page} of {pageCount} · {problems.length} notes</span>{page<pageCount ? <Link href={`/coding?page=${page+1}`}>Next</Link>:<span>Next</span>}</nav>
     </Shell>
   );
 }

@@ -3,9 +3,14 @@ import path from "node:path";
 import { FieldValue } from "firebase-admin/firestore";
 import type { DecodedIdToken } from "firebase-admin/auth";
 import { adminDb, firebaseAdminConfigured } from "./firebase-admin";
+import { mergeProblemLibrary } from "./problem-library";
+import { readCodingNotebook } from "./coding-db";
+import { DATA_DIR } from "./data-path";
+import { mkdirSync, writeFileSync, renameSync } from "node:fs";
 import type { CodingProblem } from "./types";
 
 export type ProvaProblem = {
+  identity?: string; codingKeys?: string[]; codingUpdatedAt?: string; mergedLibraryNotes?: string[];
   id: number; problemNo: string; title: string; category: string; difficulty: string; url: string;
   dateSolved: string; solvedFirstTime: string; holeInOne: string; solvedSub20: string;
   isCompetent: string; notes: string; solved: boolean; solveTime: string; site: string;
@@ -36,6 +41,10 @@ export function validProvaProblems(value: unknown): value is ProvaProblem[] {
     if (!requiredStringFields.every((field) => typeof problem[field] === "string" && (problem[field] as string).length <= 2_048)) return false;
     if (!optionalStringFields.every((field) => problem[field] === undefined || (typeof problem[field] === "string" && (problem[field] as string).length <= (field === "notes" ? 50_000 : 2_048)))) return false;
     if (problem.solveTime !== undefined && typeof problem.solveTime !== "string") return false;
+    if (problem.identity !== undefined && (typeof problem.identity !== "string" || problem.identity.length > 2_048)) return false;
+    if (problem.codingUpdatedAt !== undefined && (typeof problem.codingUpdatedAt !== "string" || problem.codingUpdatedAt.length > 2_048)) return false;
+    if (problem.codingKeys !== undefined && (!Array.isArray(problem.codingKeys) || problem.codingKeys.length > 100 || problem.codingKeys.some((key) => typeof key !== "string" || key.length > 2_048))) return false;
+    if (problem.mergedLibraryNotes !== undefined && (!Array.isArray(problem.mergedLibraryNotes) || problem.mergedLibraryNotes.length > 100 || problem.mergedLibraryNotes.some((note) => typeof note !== "string" || note.length > 50_000))) return false;
     if (problem.site !== undefined && !["", "LC", "NC"].includes(String(problem.site))) return false;
     const minutes = problem.solveTime === undefined || problem.solveTime === "" ? 0 : Number(problem.solveTime);
     return Number.isFinite(minutes) && minutes >= 0;
@@ -45,6 +54,10 @@ export function validProvaProblems(value: unknown): value is ProvaProblem[] {
 function normalizeProblem(problem: ProvaProblem): ProvaProblem {
   return {
     id: problem.id,
+    ...(Array.isArray(problem.mergedLibraryNotes) ? {mergedLibraryNotes:problem.mergedLibraryNotes.filter(n=>typeof n === "string")} : {}),
+    ...(typeof problem.identity === "string" ? { identity:problem.identity } : {}),
+    ...(Array.isArray(problem.codingKeys) ? { codingKeys:problem.codingKeys.filter(k=>typeof k === "string") } : {}),
+    ...(typeof problem.codingUpdatedAt === "string" ? { codingUpdatedAt:problem.codingUpdatedAt } : {}),
     problemNo: problem.problemNo ?? "",
     title: problem.title ?? "",
     category: problem.category ?? "",
@@ -68,75 +81,41 @@ function normalizeProblems(problems: ProvaProblem[]) {
 
 export async function readProva(user: DecodedIdToken | null) {
   const seed = readSeed();
-  if (!firebaseAdminConfigured) return seed;
+  if (!firebaseAdminConfigured) {
+    const file = path.join(DATA_DIR, "prova.json");
+    const stored = existsSync(file) ? JSON.parse(readFileSync(file,"utf8")) : seed;
+    return mergeProblemLibrary(validProvaProblems(stored) ? normalizeProblems(stored) : seed, readCodingNotebook("local").problems);
+  }
   if (!user) return [];
   const snapshot = await reference(user.uid).get();
   if (snapshot.exists) {
     const problems = snapshot.data()?.problems;
-    return validProvaProblems(problems) ? normalizeProblems(problems) : [];
+    return mergeProblemLibrary(validProvaProblems(problems) ? normalizeProblems(problems) : [], readCodingNotebook(user.uid).problems);
   }
   const problems = user.email?.toLowerCase() === TARGET_EMAIL ? seed : [];
   await writeProva(user.uid, problems);
-  return problems;
+  return mergeProblemLibrary(problems, readCodingNotebook(user.uid).problems);
 }
 
 export async function writeProva(uid: string, problems: ProvaProblem[]) {
-  if (!firebaseAdminConfigured) return problems;
-  const normalized = normalizeProblems(problems);
+  if (!firebaseAdminConfigured) {
+    mkdirSync(DATA_DIR,{recursive:true}); const file=path.join(DATA_DIR,"prova.json");
+    const merged=mergeProblemLibrary(normalizeProblems(problems),readCodingNotebook("local").problems);
+    writeFileSync(file+".tmp",JSON.stringify(merged,null,2)); renameSync(file+".tmp",file); return merged;
+  }
+  const normalized = mergeProblemLibrary(normalizeProblems(problems), readCodingNotebook(uid).problems);
   await reference(uid).set({ problems: normalized, updatedAt: FieldValue.serverTimestamp(), source: "atelier" });
   await adminDb().collection("users").doc(uid).set({ updatedAt: FieldValue.serverTimestamp() }, { merge: true });
   return normalized;
 }
 
-const exactTitle = (title: string) => title.trim().replace(/\s+/g, " ").toLocaleLowerCase();
-
-function firstAcceptedDate(problem: CodingProblem) {
-  return problem.submissions
-    .filter((submission) => submission.accepted && !Number.isNaN(new Date(submission.at).valueOf()))
-    .map((submission) => submission.at)
-    .sort()[0]
-    ?.slice(0, 10) ?? "";
-}
-
-function codingUrl(problem: CodingProblem) {
-  return problem.leetcodeSlug ? `https://leetcode.com/problems/${problem.leetcodeSlug}/` : problem.url;
-}
-
 export async function syncCodingProblemsToProva(uid: string, codingProblems: CodingProblem[]) {
-  if (!firebaseAdminConfigured) return { matched: 0, unmatched: codingProblems.length };
-  const snapshot = await reference(uid).get();
-  const stored = snapshot.data()?.problems;
-  if (!snapshot.exists || !validProvaProblems(stored)) return { matched: 0, unmatched: codingProblems.length };
-
-  const next = [...stored];
-  const indexes = new Map(next.map((problem, index) => [exactTitle(problem.title), index]));
-  let matched = 0;
-
-  for (const coding of codingProblems) {
-    const index = indexes.get(exactTitle(coding.title));
-    if (index === undefined) continue;
-    const current = next[index];
-    const dateSolved = firstAcceptedDate(coding);
-    const solved = Boolean(dateSolved);
-    const submissionCount = Number.isInteger(coding.submissionCountOverride)
-      ? coding.submissionCountOverride as number
-      : coding.submissions.length;
-    next[index] = {
-      ...current,
-      problemNo: current.problemNo || coding.leetcodeFrontendId || "",
-      category: current.category || coding.tags?.[0] || "",
-      difficulty: current.difficulty || coding.difficulty || "",
-      url: current.url || codingUrl(coding),
-      dateSolved: dateSolved || current.dateSolved,
-      notes: coding.notes || current.notes,
-      solved: current.solved || solved,
-      solvedFirstTime: solved ? (submissionCount === 1 ? "Y" : "N") : current.solvedFirstTime,
-      holeInOne: solved ? (coding.holeInOne ? "Y" : "N") : current.holeInOne,
-      solvedSub20: solved ? (coding.seconds > 0 && coding.seconds <= 1200 ? "Y" : "N") : current.solvedSub20,
-    };
-    matched += 1;
-  }
-
-  if (matched) await writeProva(uid, next);
-  return { matched, unmatched: codingProblems.length - matched };
+  if (!firebaseAdminConfigured) { const current=await readProva(null); await writeProva('local',mergeProblemLibrary(current,codingProblems)); return {matched:codingProblems.length,unmatched:0}; }
+  await adminDb().runTransaction(async transaction => {
+    const ref=reference(uid), snapshot=await transaction.get(ref);
+    const stored=snapshot.data()?.problems;
+    const next=mergeProblemLibrary(validProvaProblems(stored) ? normalizeProblems(stored) : [],codingProblems);
+    transaction.set(ref,{problems:next,updatedAt:FieldValue.serverTimestamp(),source:'atelier'});
+  });
+  return {matched:codingProblems.length,unmatched:0};
 }

@@ -56,6 +56,8 @@ export type Session = {
 };
 
 export type Payment = {
+  originalSessionId?: string | null;
+  originalDueDate?: string;
   id: string;
   studentId: string;
   sessionId: string | null;
@@ -95,6 +97,7 @@ export type CodingSubmission = {
 };
 
 export type CodingProblem = {
+  noteHistory?: { notes: string; at: string }[];
   key: string;
   title: string;
   url: string;
