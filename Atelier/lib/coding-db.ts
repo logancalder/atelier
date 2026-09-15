@@ -53,7 +53,9 @@ export async function upsertCodingProblems(incoming: CodingProblem[], ownerId = 
       if (deletedAt && new Date(problem.updatedAt).getTime() <= new Date(deletedAt).getTime()) continue;
       const current = byKey.get(problem.key);
       if (!current || new Date(problem.updatedAt).getTime() >= new Date(current.updatedAt).getTime()) {
-        byKey.set(problem.key, problem);
+        const history = [...current?.noteHistory || []];
+        if (current && current.notes !== problem.notes && !history.some(h=>h.at === current.updatedAt && h.notes === current.notes)) history.push({notes:current.notes,at:current.updatedAt});
+        byKey.set(problem.key, {...problem, noteHistory:history});
         delete notebook.deletedProblems[problem.key];
       }
     }

@@ -162,3 +162,10 @@ body.extension-popup { width:420px; max-width:100vw; }
 
 .extension-auth :is(p,input,button) { font-size:16px; }
 .extension-auth :is(.eyebrow,.error) { font-size:13px; }
+
+:root { --mute:#57564f; }
+dialog { font-size:14px; }
+dialog .dialog-head h2 { font:500 18px/1.4 var(--sans); }
+dialog :is(label,button,input,select,textarea,.check) { font-size:14px; font-weight:400; }
+dialog :is(small,.edit-unit,.auto-count) { font-size:12px; line-height:1.6; color:var(--mute); }
+dialog :is(b,strong) { font-weight:500; }

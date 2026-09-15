@@ -1,3 +1,5 @@
+import { TutoringTabs } from "@/components/tutoring-tabs";
+import { eligiblePayment } from "@/lib/payment-eligibility";
 import { Modal } from "@/components/forms";
 import { PaymentList } from "@/components/payment-list";
 import { Shell } from "@/components/shell";
@@ -31,13 +33,14 @@ export default async function MoneyPage() {
       className="money-page"
       description="A clear view of what’s due, what’s upcoming, and what’s settled."
       eyebrow="Ledger"
-      title="Zelle"
+      title="Billing"
       actions={
         <Modal title="Log a payment" label="Log payment">
           <PaymentForm students={active} />
         </Modal>
       }
     >
+      <TutoringTabs active="billing" />
       <PlaidConnect configured={plaidConfigured()} connected={Boolean(plaid)} institutionName={plaid?.institutionName} lastSyncedAt={plaid?.lastSyncedAt} reconciliationLog={plaid?.reconciliationLog} />
       <div className="stat-strip mb-16 grid sm:grid-cols-3">
         <Card>
@@ -60,7 +63,7 @@ export default async function MoneyPage() {
       </div>
 
       <div className="content-flow">
-        <StudentBalances students={active} payments={studio.payments} />
+        <StudentBalances students={active} payments={studio.payments.filter(p=>p.status === "received" || eligiblePayment(studio,p))} />
 
         <OutstandingLedger missing={missing} upcoming={upcoming} students={students} zelleHandle={studio.settings.zelleHandle} />
 

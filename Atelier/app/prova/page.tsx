@@ -1,15 +1,10 @@
 import { Shell } from "@/components/shell";
 import { ProvaWorkspace } from "@/components/prova-workspace";
 import { currentUser } from "@/lib/auth";
-import { readProva, syncCodingProblemsToProva } from "@/lib/prova";
-import { readCodingNotebook } from "@/lib/coding-db";
+import { readProva } from "@/lib/prova";
+import Link from "next/link";
 
 export default async function ProvaPage() {
-  const user = await currentUser();
-  let problems = await readProva(user);
-  if (user) {
-    const sync = await syncCodingProblemsToProva(user.uid, readCodingNotebook(user.uid).problems);
-    if (sync.matched) problems = await readProva(user);
-  }
-  return <Shell className="prova-page" description="Track the problems, patterns, and milestones in your practice." eyebrow="Coding workspace" title="Prova"><ProvaWorkspace seed={problems} /></Shell>;
+  const problems = await readProva(await currentUser());
+  return <Shell className="prova-page" eyebrow="Coding workspace" title="Problem library" description="Your complete Prova library, including every problem saved by the extension."><div className="workflow-tabs"><Link href="/prova" aria-current="page">Master library</Link><Link href="/coding">Recent notes</Link></div><ProvaWorkspace seed={problems} /></Shell>;
 }

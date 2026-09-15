@@ -1,4 +1,5 @@
 "use client";
+import { problemHref, problemAliases } from "@/lib/problem-library";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -8,7 +9,6 @@ import type { CodingProblem } from "@/lib/types";
 type SortKey = "problemNo" | "title" | "difficulty" | "category" | "solved" | "dateSolved" | "solvedFirstTime" | "solvedSub20" | "solveTime";
 const PAGE_SIZE = 25;
 const emptyProblem = (): ProvaProblem => ({ id: Date.now(), problemNo: "", title: "", category: "", difficulty: "", url: "", dateSolved: "", solvedFirstTime: "", holeInOne: "", solvedSub20: "", isCompetent: "", notes: "", solved: false, solveTime: "", site: "" });
-const exactTitle = (title: string) => title.trim().replace(/\s+/g, " ").toLocaleLowerCase();
 
 function firstAcceptedDate(problem: CodingProblem) {
   return problem.submissions
@@ -47,6 +47,8 @@ function codingToProva(problem: CodingProblem): ProvaProblem {
   return {
     id: Date.now(),
     problemNo: problem.leetcodeFrontendId || "",
+    identity: problem.key,
+    codingKeys: [problem.key],
     title: problem.title,
     category: problem.tags?.[0] || "",
     difficulty: problem.difficulty || "",
@@ -115,8 +117,8 @@ export function ProvaWorkspace({ seed }: { seed: ProvaProblem[] }) {
 
   const categories = useMemo(() => [...new Set(problems.map((problem) => problem.category).filter(Boolean))].sort(), [problems]);
   const unmatchedCodingProblems = useMemo(() => {
-    const titles = new Set(problems.map((problem) => exactTitle(problem.title)));
-    return codingProblems.filter((problem) => problem.title.trim() && !titles.has(exactTitle(problem.title)));
+    const aliases = new Set(problems.flatMap(problemAliases));
+    return codingProblems.filter((problem) => problem.title.trim() && !aliases.has(problem.key));
   }, [codingProblems, problems]);
   const visible = useMemo(() => problems.filter((problem) => {
     const matchesQuery = !query || `${problem.problemNo} ${problem.title} ${problem.category} ${problem.notes}`.toLowerCase().includes(query.toLowerCase());
@@ -215,7 +217,7 @@ export function ProvaWorkspace({ seed }: { seed: ProvaProblem[] }) {
 
     {saveError ? <p className="prova-save-error" role="alert">{saveError}</p> : null}
     {view === "table" ? <div className="prova-table-wrap"><table className="prova-table"><thead><tr><th>{sortButton("problemNo", "#")}</th><th>{sortButton("title", "Problem")}</th><th>{sortButton("difficulty", "Difficulty")}</th><th>{sortButton("category", "Category")}</th><th>{sortButton("solved", "Solved")}</th><th>{sortButton("dateSolved", "Solved on")}</th><th>{sortButton("solvedFirstTime", "First try")}</th><th>{sortButton("solvedSub20", "Sub 20")}</th><th>{sortButton("solveTime", "Time")}</th><th /></tr></thead><tbody key={resultMotionKey}>{paginated.map((problem) => <ProblemRow key={problem.id} problem={problem} onEdit={() => setEditing(problem)} />)}</tbody></table></div>
-      : <div className="prova-grid" key={resultMotionKey}>{paginated.map((problem) => <article data-motion-item key={problem.id}><p className="metric-label">{problem.site ? `[${problem.site}] ` : ""}#{problem.problemNo} · {problem.category}</p><h2><a href={problem.url || undefined} target="_blank" rel="noreferrer">{problem.title}</a></h2><div><span>{problem.difficulty}</span><span>{problem.solved ? "Solved" : "Open"}</span>{problem.dateSolved ? <span>Solved {displayDate(problem.dateSolved)}</span> : null}{problem.solvedFirstTime === "Y" ? <span>First try</span> : null}{problem.solveTime ? <span>{problem.solveTime}m</span> : null}</div><p>{problem.notes || "No notes yet."}</p><button onClick={() => setEditing(problem)}>Edit problem</button></article>)}</div>}
+      : <div className="prova-grid" key={resultMotionKey}>{paginated.map((problem) => <article data-motion-item key={problem.id}><p className="metric-label">{problem.site ? `[${problem.site}] ` : ""}#{problem.problemNo} · {problem.category}</p><h2><a href={problemHref(problem)}>{problem.title}</a></h2><div><span>{problem.difficulty}</span><span>{problem.solved ? "Solved" : "Open"}</span>{problem.dateSolved ? <span>Solved {displayDate(problem.dateSolved)}</span> : null}{problem.solvedFirstTime === "Y" ? <span>First try</span> : null}{problem.solveTime ? <span>{problem.solveTime}m</span> : null}</div><p>{problem.notes || "No notes yet."}</p><button onClick={() => setEditing(problem)}>Edit problem</button></article>)}</div>}
     {visible.length ? <nav className="prova-pagination" aria-label="Prova pages"><button disabled={currentPage === 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>Previous</button><span>{currentPage} / {pageCount}</span><button disabled={currentPage === pageCount} onClick={() => setPage((value) => Math.min(pageCount, value + 1))}>Next</button></nav> : null}
     {!visible.length ? <div className="prova-empty"><span>A</span><h2>No problems found.</h2><p>Try clearing a filter or add a new problem.</p></div> : null}
 
@@ -226,7 +228,7 @@ export function ProvaWorkspace({ seed }: { seed: ProvaProblem[] }) {
 }
 
 function ProblemRow({ problem, onEdit }: { problem: ProvaProblem; onEdit: () => void }) {
-  return <tr data-motion-item><td className="prova-number">{problem.problemNo}</td><td><div className="prova-problem-cell"><a href={problem.url || undefined} target="_blank" rel="noreferrer">{problem.site ? <span className="prova-site-label">{problem.site}</span> : null}{problem.title}</a></div>{problem.notes ? <small>{problem.notes}</small> : null}</td><td><span data-difficulty={problem.difficulty.toLowerCase()}>{problem.difficulty || "—"}</span></td><td>{problem.category}</td><td>{problem.solved ? <span className="prova-status-good">Yes</span> : "—"}</td><td className="prova-date">{displayDate(problem.dateSolved)}</td><td>{problem.solvedFirstTime || "—"}</td><td>{problem.solvedSub20 || "—"}</td><td>{problem.solveTime ? `${problem.solveTime}m` : "—"}</td><td><button type="button" className="prova-edit-visible" onClick={onEdit}>Edit</button></td></tr>;
+  return <tr data-motion-item><td className="prova-number">{problem.problemNo}</td><td><div className="prova-problem-cell"><a href={problemHref(problem)}>{problem.site ? <span className="prova-site-label">{problem.site}</span> : null}{problem.title}</a></div>{problem.notes ? <small>{problem.notes}</small> : null}</td><td><span data-difficulty={problem.difficulty.toLowerCase()}>{problem.difficulty || "—"}</span></td><td>{problem.category}</td><td>{problem.solved ? <span className="prova-status-good">Yes</span> : "—"}</td><td className="prova-date">{displayDate(problem.dateSolved)}</td><td>{problem.solvedFirstTime || "—"}</td><td>{problem.solvedSub20 || "—"}</td><td>{problem.solveTime ? `${problem.solveTime}m` : "—"}</td><td><button type="button" className="prova-edit-visible" onClick={onEdit}>Edit</button></td></tr>;
 }
 
 function ProblemDialog({ problem, categories, imports, importsLoading, importsError, onClose, onSave, onDelete }: { problem: ProvaProblem; categories: string[]; imports: CodingProblem[]; importsLoading: boolean; importsError: string; onClose: () => void; onSave: (problem: ProvaProblem) => Promise<void>; onDelete: () => Promise<void> }) {

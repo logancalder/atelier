@@ -1,3 +1,4 @@
+import { reconcileCancelledPayments, cancelledSession } from "./payment-eligibility";
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "fs";
 import path from "path";
 import { addDays, alignDateToWeekday, isValidDateKey, parseDateKey, parseLocalDateTime, toDateKey, toLocalDateTime, todayKey } from "./dates";
@@ -140,7 +141,7 @@ export function ensureSessionPayment(studio: Studio, session: Session) {
     ? student?.lateCancelFeeCents ?? sessionAmount(session.rateCents, session.durationMin)
     : sessionAmount(session.rateCents, session.durationMin);
   const dueDate = session.startsAt.slice(0, 10);
-  const paymentStatus = session.status === "cancelled" ? "cancelled" : "upcoming";
+  const paymentStatus = cancelledSession(session) ? "cancelled" : "upcoming";
   const memo = session.status === "late_cancel" ? "Late cancellation fee" : session.status === "cancelled" ? "Cancelled session" : "Session";
 
   if (existing) {
@@ -170,9 +171,11 @@ export function ensureSessionPayment(studio: Studio, session: Session) {
 
 function synchronizeSessionPayments(studio: Studio) {
   for (const session of studio.sessions) ensureSessionPayment(studio, session);
+  reconcileCancelledPayments(studio);
 }
 
 export function cancelSessionPayment(studio: Studio, sessionId: string) {
+  reconcileCancelledPayments(studio);
   const payment = studio.payments.find((item) => item.sessionId === sessionId);
   if (payment && payment.status !== "received") {
     payment.status = "cancelled";
@@ -200,6 +203,7 @@ export async function updateStudio<T>(mutator: (studio: Studio) => T, explicitOw
     expandRecurring(studio);
     synchronizeSessionPayments(studio);
     const result = mutator(studio);
+    synchronizeSessionPayments(studio);
     refreshPaymentStatuses(studio);
     persist(studio, ownerId);
     return result;

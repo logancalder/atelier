@@ -1,3 +1,4 @@
+import { eligiblePayment } from "./payment-eligibility";
 import { parseLocalDateTime, startOfWeek, toDateKey, todayKey } from "./dates";
 import type { Payment, Session, Studio } from "./types";
 
@@ -27,7 +28,7 @@ export function upcomingSessions(studio: Studio, limit = 8) {
 
 export function paymentsByStatus(studio: Studio, status: Payment["status"]) {
   return studio.payments
-    .filter((payment) => payment.status === status)
+    .filter((payment) => payment.status === status && (status === "received" || eligiblePayment(studio,payment)))
     .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
 }
 

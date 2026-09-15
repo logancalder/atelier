@@ -359,3 +359,15 @@ body:has(#solvenotes-panel.sn-disconnected[data-open]) #atelier-notes-handle .sn
 #solvenotes-panel.sn-workbench .sn-metrics-fields input, #solvenotes-panel.sn-workbench .sn-metrics-actions button { font-size:16px!important; }
 #solvenotes-panel.sn-workbench.sn-disconnected .sn-auth-intro { font-size:16px!important; line-height:1.6!important; }
 #solvenotes-panel.sn-workbench .sn-editor { scrollbar-width:thin; }
+
+/* Small, consistent editor scale: 12px help, 14px controls, 16px title. */
+#solvenotes-panel.sn-workbench { --sn-muted:#57564f; }
+#solvenotes-panel.sn-workbench:not(.sn-disconnected) .sn-metrics-editor { gap:16px!important; padding:18px!important; background:#fbfaf7!important; }
+#solvenotes-panel.sn-workbench:not(.sn-disconnected) .sn-metrics-editor-head strong { font:500 16px/1.5 var(--sn-sans)!important; color:#2f2e2a!important; }
+#solvenotes-panel.sn-workbench:not(.sn-disconnected) .sn-metrics-fields label { font:400 14px/1.5 var(--sn-sans)!important; color:#2f2e2a!important; }
+#solvenotes-panel.sn-workbench:not(.sn-disconnected) .sn-metrics-fields label span,#solvenotes-panel.sn-workbench:not(.sn-disconnected) .sn-metrics-editor > p { font:400 12px/1.6 var(--sn-sans)!important; letter-spacing:0!important; color:#57564f!important; }
+#solvenotes-panel.sn-workbench:not(.sn-disconnected) .sn-metrics-fields input,#solvenotes-panel.sn-workbench:not(.sn-disconnected) .sn-metrics-actions button { font:400 14px/1.5 var(--sn-sans)!important; min-height:40px!important; color:#2f2e2a!important; }
+#solvenotes-panel.sn-workbench:not(.sn-disconnected) .sn-metrics-actions [data-save-metrics] { background:#191c19!important; color:#f7f6f2!important; }
+#solvenotes-panel.sn-workbench:not(.sn-disconnected) footer .sn-account-copy strong { font:400 14px/1.5 var(--sn-sans)!important; height:auto!important; min-height:23px!important; padding-bottom:2px!important; overflow:visible!important; white-space:normal!important; overflow-wrap:anywhere!important; }
+#solvenotes-panel.sn-workbench footer .sn-account-copy { display:grid!important; min-width:0!important; height:auto!important; overflow:visible!important; }
+#solvenotes-panel.sn-workbench:not(.sn-disconnected) .sn-flags b { font-weight:400!important; }

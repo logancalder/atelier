@@ -1,13 +1,15 @@
 "use client";
 
+import { googleProvider, githubProvider } from "@/lib/auth-providers";
+import { verifiedCollisionEmail } from "@/lib/identity-linking";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createUserWithEmailAndPassword, EmailAuthProvider, GithubAuthProvider, GoogleAuthProvider, linkWithCredential, signInWithEmailAndPassword, signInWithPopup, signOut, type AuthCredential, type AuthError, type UserCredential } from "firebase/auth";
+import { createUserWithEmailAndPassword, EmailAuthProvider, GithubAuthProvider, GoogleAuthProvider, linkWithCredential, sendEmailVerification, signInWithEmailAndPassword, signInWithPopup, signOut, type AuthCredential, type AuthError, type UserCredential } from "firebase/auth";
 import { clientAuth, firebaseClientConfigured } from "@/lib/firebase-client";
 import { safeRedirectDestination } from "@/lib/safe-redirect";
 import { ProviderIcon } from "@/components/provider-icon";
 
-export function AuthForm({ destination = "/coding" }: { destination?: string }) {
+export function AuthForm({ destination = "/coding", preferredProvider }: { destination?: string; preferredProvider?: string }) {
   const router = useRouter();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [error, setError] = useState("");
@@ -19,7 +21,7 @@ export function AuthForm({ destination = "/coding" }: { destination?: string }) 
 
   async function finish(credential: UserCredential) {
     setBusyMessage("Securing your Atelier session…");
-    const idToken = await credential.user.getIdToken();
+    const idToken = await credential.user.getIdToken(true);
     const response = await fetch("/api/auth/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ idToken }) });
     if (!response.ok) {
       const body = await response.text();
@@ -36,16 +38,16 @@ export function AuthForm({ destination = "/coding" }: { destination?: string }) 
     router.refresh();
   }
 
-  async function run(action: () => Promise<UserCredential>, duplicateCredential?: AuthCredential, progressMessage = "Signing in…") {
+  async function run(action: () => Promise<UserCredential>, duplicateCredential?: AuthCredential, progressMessage = "Signing in…", provider?: "google" | "github") {
     setBusy(true); setError("");
     setBusyMessage(progressMessage);
     try {
       let credential = await action();
       if (pendingCredential && !credential.user.providerData.some((provider) => provider.providerId === pendingCredential.providerId)) {
-        const signedInEmail = credential.user.email?.trim().toLowerCase() || "";
-        if (pendingEmail && signedInEmail !== pendingEmail) {
+        if (!verifiedCollisionEmail(pendingEmail, credential.user.email, credential.user.emailVerified)) {
+          if (!credential.user.emailVerified) await sendEmailVerification(credential.user);
           await signOut(clientAuth());
-          throw new Error(`Sign in to ${pendingEmail} to finish linking these accounts.`);
+          throw new Error(`Verify the email for ${pendingEmail || "your existing account"}, then sign in with its existing method to finish linking.`);
         }
         setBusyMessage("Linking both sign-in methods…");
         credential = await linkWithCredential(credential.user, pendingCredential);
@@ -55,7 +57,7 @@ export function AuthForm({ destination = "/coding" }: { destination?: string }) 
       await finish(credential);
     } catch (caught) {
       const authError = caught as AuthError;
-      const linkable = duplicateCredential || GoogleAuthProvider.credentialFromError(authError) || GithubAuthProvider.credentialFromError(authError);
+      const linkable = duplicateCredential || (provider === "github" ? GithubAuthProvider.credentialFromError(authError) : provider === "google" ? GoogleAuthProvider.credentialFromError(authError) : null);
       if ((authError.code === "auth/account-exists-with-different-credential" || authError.code === "auth/email-already-in-use") && linkable) {
         const collisionEmail = typeof authError.customData?.email === "string" ? authError.customData.email.trim().toLowerCase() : email.trim().toLowerCase();
         setPendingCredential(linkable);
@@ -75,10 +77,12 @@ export function AuthForm({ destination = "/coding" }: { destination?: string }) 
 
   return (
     <div className="auth-form" aria-busy={busy}>
-      <button className="provider-button" onClick={() => run(() => signInWithPopup(clientAuth(), new GoogleAuthProvider()), undefined, "Waiting for Google sign-in…")} disabled={busy}><ProviderIcon provider="google.com" />Continue with Google</button>
-      <button className="provider-button" onClick={() => run(() => signInWithPopup(clientAuth(), new GithubAuthProvider()), undefined, "Waiting for GitHub sign-in…")} disabled={busy}><ProviderIcon provider="github.com" />Continue with GitHub</button>
+      {preferredProvider ? <p className="auth-link-note">You selected {preferredProvider === "github" ? "GitHub" : preferredProvider === "google" ? "Google" : "email"} in the extension. Choose that method below, or your existing method to link accounts.</p> : null}
+      <button className="provider-button" onClick={() => run(() => signInWithPopup(clientAuth(), googleProvider()), undefined, "Waiting for Google sign-in…", "google")} disabled={busy}><ProviderIcon provider="google.com" />Continue with Google</button>
+      <button className="provider-button" onClick={() => run(() => signInWithPopup(clientAuth(), githubProvider()), undefined, "Waiting for GitHub sign-in…", "github")} disabled={busy}><ProviderIcon provider="github.com" />Continue with GitHub</button>
       {busy ? <p className="auth-progress" role="status" aria-live="polite"><span className="auth-spinner" aria-hidden="true" />{busyMessage}</p> : null}
       <div className="auth-divider"><span>or</span></div>
+      {pendingCredential ? <button type="button" disabled={busy} onClick={()=>{setPendingCredential(null);setPendingEmail("");setError("");}}>Cancel linking</button> : null}
       {pendingCredential ? <p className="auth-link-note">Finish linking{pendingEmail ? ` ${pendingEmail}` : ""}: sign in once with the account’s existing method. Both options will then open the same Atelier workspace.</p> : null}
       <form onSubmit={(event) => { event.preventDefault(); const data = new FormData(event.currentTarget); const password = String(data.get("password")); void run(() => mode === "signup" ? createUserWithEmailAndPassword(clientAuth(), email, password) : signInWithEmailAndPassword(clientAuth(), email, password), mode === "signup" ? EmailAuthProvider.credential(email, password) : undefined); }}>
         <label>Email<input name="email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>

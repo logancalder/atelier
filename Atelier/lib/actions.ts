@@ -1,4 +1,5 @@
 "use server";
+import { reconcileCancelledPayments, eligiblePayment } from "./payment-eligibility";
 
 import { revalidatePath } from "next/cache";
 import {
@@ -167,6 +168,7 @@ export async function deleteSession(id: string) {
     if (session.status !== "cancelled" && session.status !== "late_cancel") {
       throw new Error("Cancel the session before deleting it.");
     }
+    reconcileCancelledPayments(studio);
     recordDeletedSession(studio, session);
     studio.sessions = studio.sessions.filter((item) => item.id !== id);
     studio.payments = studio.payments.filter((payment) => payment.sessionId !== id);
@@ -180,6 +182,7 @@ export async function deleteCancelledSessions(studentId: string) {
     const cancelled = studio.sessions.filter(
       (session) => session.studentId === studentId && (session.status === "cancelled" || session.status === "late_cancel"),
     );
+    reconcileCancelledPayments(studio);
     const cancelledIds = new Set(cancelled.map((session) => session.id));
     for (const session of cancelled) recordDeletedSession(studio, session);
     studio.sessions = studio.sessions.filter((session) => !cancelledIds.has(session.id));
@@ -256,7 +259,7 @@ export async function markPaymentReceived(id: string) {
   await updateStudio((studio) => {
     const payment = findPayment(studio, id);
     if (!payment) return;
-    if (payment.status === "cancelled") throw new Error("Cancelled payments cannot be marked received.");
+    if (!eligiblePayment(studio,payment)) throw new Error("This payment is not eligible for session matching.");
     payment.status = "received";
     payment.receivedAt = new Date().toISOString();
   });

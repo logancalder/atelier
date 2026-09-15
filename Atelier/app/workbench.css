@@ -297,3 +297,28 @@ body { background: var(--canvas); }
 .site-gooey:not(:disabled):is(:hover,:focus-visible) .site-liquid i { transform:translateX(0) scale(1.2); }
 .site-gooey:active .site-liquid i { transform:translateX(0) scale(1.4); transition-duration:100ms; }
 @media(prefers-reduced-motion:reduce) { .site-gooey .site-liquid, .site-liquid i { transition:none; } }
+
+/* Library and teaching workflows share a compact, readable local navigation. */
+.workflow-tabs { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin:0 0 24px; font-size:14px; }
+.workflow-tabs a,.workflow-tabs button { padding:9px 14px; border:1px solid var(--line); border-radius:10px; }
+.workflow-tabs [aria-current=page] { background:var(--rail); color:var(--paper); }
+.workflow-tabs > span { color:var(--mute); }
+.problem-facts { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:16px; margin:24px 0; }
+.problem-facts dt,.note-history time { color:var(--mute); font-size:12px; }
+.problem-facts dd { margin:4px 0 0; font-size:16px; }
+.problem-detail .content-section { margin-bottom:24px; }
+.problem-detail h3 { margin:24px 0 12px; }
+.problem-detail p,.note-history p { overflow-wrap:anywhere; white-space:pre-wrap; }
+.note-history { border-left:2px solid var(--accent); padding:12px 16px; margin:12px 0; }
+.identity-linker { margin:24px 0; display:grid; gap:12px; font-size:14px; }
+.identity-linker h2 { font:500 16px var(--font-sans-body); }
+.identity-linker select,.identity-linker input { width:100%; border:1px solid var(--line); border-radius:8px; padding:10px; margin-top:8px; }
+@media(min-width:1000px) {
+ .prova-layout { height:clamp(480px,calc(100dvh - 290px),900px); min-height:0; align-items:stretch; }
+ .prova-filter-sidebar { position:static; height:100%; max-height:none; overflow-y:auto; scrollbar-width:thin; }
+ .prova-results { height:100%; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
+ .prova-results > :is(.prova-controls,.prova-utility,.prova-pagination,.prova-save-error) { flex-shrink:0; }
+ .prova-results > :is(.prova-table-wrap,.prova-grid) { flex:1; min-height:0; overflow:auto; scrollbar-width:thin; }
+ .prova-table th { position:sticky; top:0; z-index:1; background:var(--surface-soft); }
+}
+@media(max-width:999px) { .prova-layout { height:auto; } .prova-filter-sidebar { max-height:280px; overflow:auto; } .prova-results { min-width:0; } .prova-table-wrap { overflow:auto; max-height:65dvh; } }

@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:security": "node --experimental-strip-types scripts/security-regression.mjs"
+    "test:security": "node --experimental-strip-types scripts/security-regression.mjs",
+    "test:workflow": "node scripts/workflow-regression.cjs"
   },
   "dependencies": {
     "firebase": "^12.18.0",

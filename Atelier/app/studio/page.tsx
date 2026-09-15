@@ -1,3 +1,6 @@
+import { TutoringTabs } from "@/components/tutoring-tabs";
+import StudentsPage from "@/components/tutoring-students";
+import CalendarPage from "@/components/tutoring-calendar";
 import { Modal } from "@/components/forms";
 import { SessionRow } from "@/components/rows";
 import { Shell } from "@/components/shell";
@@ -9,7 +12,10 @@ import { formatMoney } from "@/lib/money";
 import { monthReceivedCents, paymentsByStatus, todaySessions, upcomingSessions } from "@/lib/queries";
 import { dataOwnerId } from "@/lib/auth";
 
-export default async function StudioPage() {
+export default async function StudioPage({searchParams}:{searchParams:Promise<{view?:string;week?:string}>}) {
+  const query=await searchParams;
+  if (query.view === 'students') return <StudentsPage />;
+  if (query.view === 'calendar') return <CalendarPage searchParams={Promise.resolve({week:query.week})} />;
   const studio = readStudio(await dataOwnerId());
   const students = Object.fromEntries(studio.students.map((student) => [student.id, student]));
   const today = todaySessions(studio);
@@ -40,6 +46,7 @@ export default async function StudioPage() {
         </>
       }
     >
+      <TutoringTabs active="today" />
       <div className="stat-strip mb-16 grid sm:grid-cols-3">
         <Card>
           <p className="text-[11px] uppercase tracking-[0.16em] text-mute">Today</p>
