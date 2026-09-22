@@ -48,3 +48,5 @@ The Plaid history request previously used a UTC date key for its end date, while
 The Billing view now shows the requested-through Pacific date and, when Plaid provides it, the last successful bank-data update. A successful check with no new match no longer claims that bank activity itself is up to date. Plaid and the financial institution can still deliver a same-day transaction later; the application cannot make an unavailable transaction appear early.
 
 `npm run test:plaid-dates` covers Pacific midnight, the UTC day rollover, winter PST, spring/fall DST, today's inclusive request boundary, and both edges of the 14-day matching window. The existing workflow regression, TypeScript, ESLint, and production build were rerun for this follow-up.
+
+The fix was merged through [PR #4](https://github.com/logancalder/atelier/pull/4) as main commit `b37a0641f00188e1459f508649399872f7fc980e`. GitHub reported the linked Vercel Production deployment successful, and the canonical [Atelier site](https://atelier-olive-omega.vercel.app/) returned HTTP 200. No private bank account or live Zelle transaction was used in verification.
