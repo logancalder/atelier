@@ -41,7 +41,7 @@ export default async function MoneyPage() {
       }
     >
       <TutoringTabs active="billing" />
-      <PlaidConnect configured={plaidConfigured()} connected={Boolean(plaid)} institutionName={plaid?.institutionName} lastSyncedAt={plaid?.lastSyncedAt} reconciliationLog={plaid?.reconciliationLog} />
+      <PlaidConnect configured={plaidConfigured()} connected={Boolean(plaid)} institutionName={plaid?.institutionName} lastSyncedAt={plaid?.lastSyncedAt} checkedThroughDate={plaid?.checkedThroughDate} bankLastUpdatedAt={plaid?.bankLastUpdatedAt} reconciliationLog={plaid?.reconciliationLog} />
       <div className="stat-strip mb-16 grid sm:grid-cols-3">
         <Card>
           <p className="text-[11px] uppercase tracking-[0.16em] text-mute">Missing</p>

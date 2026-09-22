@@ -8,23 +8,28 @@ import { useToast } from "./toast";
 import { formatMoney } from "@/lib/money";
 import type { ReconciliationLogEntry } from "@/lib/plaid";
 
-type SyncResult = { imported: number; candidates: number; matched: number };
+type SyncResult = { imported: number; candidates: number; matched: number; checkedThroughDate: string; bankLastUpdatedAt: string | null };
 
 export function PlaidConnect({
   configured,
   connected,
   institutionName,
   lastSyncedAt,
+  checkedThroughDate,
+  bankLastUpdatedAt,
   reconciliationLog = [],
 }: {
   configured: boolean;
   connected: boolean;
   institutionName?: string;
   lastSyncedAt?: string | null;
+  checkedThroughDate?: string | null;
+  bankLastUpdatedAt?: string | null;
   reconciliationLog?: ReconciliationLogEntry[];
 }) {
   const [linkToken, setLinkToken] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [lastCheck, setLastCheck] = useState({ checkedAt: lastSyncedAt, checkedThroughDate, bankLastUpdatedAt });
   const router = useRouter();
   const toast = useToast();
 
@@ -34,7 +39,8 @@ export function PlaidConnect({
       const response = await fetch("/api/plaid/sync", { method: "POST" });
       const result = await response.json() as SyncResult & { error?: string };
       if (!response.ok) throw new Error(result.error || "Sync failed.");
-      toast.show(result.matched ? `${result.matched} payment${result.matched === 1 ? "" : "s"} matched from Zelle` : "Bank activity is up to date", result.matched ? "success" : "info");
+      setLastCheck({ checkedAt: new Date().toISOString(), checkedThroughDate: result.checkedThroughDate, bankLastUpdatedAt: result.bankLastUpdatedAt });
+      toast.show(result.matched ? `${result.matched} payment${result.matched === 1 ? "" : "s"} matched from Zelle` : `No new Zelle matches through ${result.checkedThroughDate} Pacific. Bank updates may arrive later.`, result.matched ? "success" : "info");
       router.refresh();
     } catch (error) {
       toast.show(error instanceof Error ? error.message : "Sync failed.", "error");
@@ -50,11 +56,12 @@ export function PlaidConnect({
       .then(async (response) => ({ response, result: await response.json() as SyncResult & { error?: string } }))
       .then(({ response, result }) => {
         if (!active || !response.ok) return;
+        setLastCheck({ checkedAt: new Date().toISOString(), checkedThroughDate: result.checkedThroughDate, bankLastUpdatedAt: result.bankLastUpdatedAt });
         if (result.matched > 0) {
           toast.show(`${result.matched} payment${result.matched === 1 ? "" : "s"} matched from Zelle`);
           router.refresh();
         }
-      });
+      }).catch(() => { /* The manual Check now action reports sync errors. */ });
     return () => { active = false; };
   }, [connected, router, toast]);
 
@@ -108,9 +115,14 @@ export function PlaidConnect({
         </p>
         <p className="mt-0.5 text-xs text-mute">
           {connected
-            ? lastSyncedAt ? `Last checked ${new Date(lastSyncedAt).toLocaleString()}` : "Ready for the first sync"
+            ? lastCheck.checkedAt ? `Atelier checked ${new Date(lastCheck.checkedAt).toLocaleString(undefined, { timeZone: "America/Los_Angeles", timeZoneName: "short" })}` : "Ready for the first sync"
             : configured ? "Connect once; Atelier checks for Zelle deposits when you open this ledger." : "Copy .env.example to .env.local and add your Plaid sandbox keys."}
         </p>
+        {connected ? <p className="mt-0.5 text-xs text-mute">
+          {lastCheck.checkedThroughDate ? `Requested bank dates through ${lastCheck.checkedThroughDate} Pacific. ` : ""}
+          {lastCheck.bankLastUpdatedAt ? `Plaid last checked the bank ${new Date(lastCheck.bankLastUpdatedAt).toLocaleString(undefined, { timeZone: "America/Los_Angeles", timeZoneName: "short" })}. ` : ""}
+          Same-day transfers may appear after the bank and Plaid update.
+        </p> : null}
       </div>
       <div className="flex shrink-0 flex-wrap gap-2">
         {connected ? (

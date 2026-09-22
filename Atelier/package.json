@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test:security": "node --experimental-strip-types scripts/security-regression.mjs",
-    "test:workflow": "node scripts/workflow-regression.cjs"
+    "test:workflow": "node scripts/workflow-regression.cjs",
+    "test:plaid-dates": "node scripts/plaid-date-regression.cjs"
   },
   "dependencies": {
     "firebase": "^12.18.0",
