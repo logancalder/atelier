@@ -40,3 +40,11 @@ Production provider setup still needs the matching Firebase project configuratio
 - `npm run build` passes with Next.js 16.3.3.
 - Browser verification passes for the full-height Problem Library, encoded unique problem links, Recent Notes pagination shell, Tutoring tabs, and legacy route redirects.
 - The extension drawer and popup were rendered from the final CSS to inspect scale, contrast, button treatment, and overflow behavior.
+
+## Pacific Zelle bank-date follow-up (2026-09-21)
+
+The Plaid history request previously used a UTC date key for its end date, while payment matching converted Plaid's date-only bank values into local noon timestamps. That made the requested range depend on the server's timezone and could exclude a payment exactly 14 calendar days away across the fall daylight-saving transition. The request now explicitly includes the current `America/Los_Angeles` calendar date as Plaid's inclusive `end_date`, with the start date calculated 90 calendar days earlier. Matching compares calendar dates rather than elapsed hours, so PST/PDT changes cannot shrink the ±14-day window.
+
+The Billing view now shows the requested-through Pacific date and, when Plaid provides it, the last successful bank-data update. A successful check with no new match no longer claims that bank activity itself is up to date. Plaid and the financial institution can still deliver a same-day transaction later; the application cannot make an unavailable transaction appear early.
+
+`npm run test:plaid-dates` covers Pacific midnight, the UTC day rollover, winter PST, spring/fall DST, today's inclusive request boundary, and both edges of the 14-day matching window. The existing workflow regression, TypeScript, ESLint, and production build were rerun for this follow-up.

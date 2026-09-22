@@ -12,6 +12,7 @@ import {
   type Transaction,
 } from "plaid";
 import { updateStudio } from "./db";
+import { datesWithinDays, plaidHistoryRange } from "./plaid-dates";
 
 export type PlaidConnection = {
   accessToken: string;
@@ -19,6 +20,8 @@ export type PlaidConnection = {
   institutionName: string;
   cursor: string | null;
   lastSyncedAt: string | null;
+  checkedThroughDate?: string | null;
+  bankLastUpdatedAt?: string | null;
   seenTransactionIds: string[];
   zelleDeposits: PlaidZelleDeposit[];
   reconciliationLog: ReconciliationLogEntry[];
@@ -156,28 +159,22 @@ function nameMatches(senderName: string, savedName: string) {
   return savedTokens.length >= 2 && savedTokens.every((token) => senderTokens.includes(token));
 }
 
-function dateKey(date: Date) {
-  return date.toISOString().slice(0, 10);
-}
-
 async function checkingTransactions(client: PlaidApi, accessToken: string) {
   const accounts = await client.accountsGet({ access_token: accessToken });
   const checkingIds = accounts.data.accounts
     .filter((account) => account.subtype === AccountSubtype.Checking)
     .map((account) => account.account_id);
-  if (!checkingIds.length) return [];
+  const { startDate, endDate } = plaidHistoryRange();
+  if (!checkingIds.length) return { transactions: [] as Transaction[], checkedThroughDate: endDate };
 
-  const end = new Date();
-  const start = new Date(end);
-  start.setDate(start.getDate() - 90);
   const transactions: Transaction[] = [];
   let offset = 0;
   let total = 1;
   while (offset < total) {
     const response = await client.transactionsGet({
       access_token: accessToken,
-      start_date: dateKey(start),
-      end_date: dateKey(end),
+      start_date: startDate,
+      end_date: endDate,
       options: { account_ids: checkingIds, count: 500, offset, include_original_description: true },
     });
     transactions.push(...response.data.transactions);
@@ -185,7 +182,7 @@ async function checkingTransactions(client: PlaidApi, accessToken: string) {
     offset += response.data.transactions.length;
     if (!response.data.transactions.length) break;
   }
-  return transactions;
+  return { transactions, checkedThroughDate: endDate };
 }
 
 export async function syncPlaidTransactions(ownerId: string) {
@@ -204,7 +201,12 @@ export async function syncPlaidTransactions(ownerId: string) {
     hasMore = response.data.has_more;
   }
 
-  const history = await checkingTransactions(client, connection.accessToken);
+  const { transactions: history, checkedThroughDate } = await checkingTransactions(client, connection.accessToken);
+  let bankLastUpdatedAt = connection.bankLastUpdatedAt ?? null;
+  try {
+    const item = await client.itemGet({ access_token: connection.accessToken });
+    bankLastUpdatedAt = item.data.status?.transactions?.last_successful_update ?? bankLastUpdatedAt;
+  } catch { /* Item status is informative; a status error must not block reconciliation. */ }
   const deposits = new Map(connection.zelleDeposits.map((deposit) => [deposit.transactionId, deposit]));
   const depositsByTransactionId = new Map(
     connection.zelleDeposits.flatMap((deposit) =>
@@ -267,7 +269,6 @@ export async function syncPlaidTransactions(ownerId: string) {
         .filter((payment) => deposit.matchedPaymentIds.includes(payment.id))
         .reduce((sum, payment) => sum + payment.amountCents, 0);
       let availableCents = Math.max(0, deposit.amountCents - alreadyAllocated);
-      const depositTime = new Date(`${deposit.date}T12:00:00`).getTime();
       if (availableCents === 0) {
         reconciliationLog.push({
           transactionId: deposit.transactionId,
@@ -284,7 +285,7 @@ export async function syncPlaidTransactions(ownerId: string) {
       const inWindow = studio.payments
         .filter((payment) => eligiblePayment(studio, payment))
         .filter((payment) => payment.studentId === student.id && !deposit.matchedPaymentIds.includes(payment.id))
-        .filter((payment) => Math.abs(new Date(`${payment.dueDate}T12:00:00`).getTime() - depositTime) <= 14 * 86400000);
+        .filter((payment) => datesWithinDays(payment.dueDate, deposit.date, 14));
 
       const manuallyReceived = inWindow
         .filter((payment) => payment.status === "received" && !payment.plaidTransactionId)
@@ -356,6 +357,8 @@ export async function syncPlaidTransactions(ownerId: string) {
     ...connection,
     cursor: cursor ?? null,
     lastSyncedAt: new Date().toISOString(),
+    checkedThroughDate,
+    bankLastUpdatedAt,
     seenTransactionIds: [...seen].slice(-2000),
     zelleDeposits: zelleDeposits.slice(0, 1000),
     reconciliationLog: reconciliationLog.slice(0, 100),
@@ -363,5 +366,5 @@ export async function syncPlaidTransactions(ownerId: string) {
   writePlaidConnection(updatedConnection, ownerId);
   await mirrorPlaidConnection(updatedConnection, ownerId);
 
-  return { imported: history.length, candidates: zelleDeposits.length, matched };
+  return { imported: history.length, candidates: zelleDeposits.length, matched, checkedThroughDate, bankLastUpdatedAt };
 }
